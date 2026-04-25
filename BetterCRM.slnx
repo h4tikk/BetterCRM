@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="BetterCRM.Api/BetterCRM.Api.csproj" />
+  <Project Path="BetterCRM.Business/BetterCRM.Business.csproj" />
+  <Project Path="BetterCRM.Core/BetterCRM.Core.csproj" />
+  <Project Path="BetterCRM.DataAccess/BetterCRM.DataAccess.csproj" />
+</Solution>
