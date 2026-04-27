@@ -4,8 +4,7 @@
     {
         public string Title { get; private set; } = string.Empty;
         public decimal HourlyRate { get; private set; }
-        public Guid? DepartmentId { get; private set; }
-        public Department? Department { get; private set; }
+
 
         public ICollection<User> Users { get; private set; } = new List<User>();
 
@@ -16,7 +15,7 @@
 
         private Position() { }
 
-        public static (Position? position, string? error) Create(string title, decimal hourlyRate, Guid? departmentId)
+        public static (Position? position, string? error) Create(string title, decimal hourlyRate)
         {
             if (string.IsNullOrWhiteSpace(title))
                 return (null, "Название должности не может быть пустым");
@@ -32,8 +31,7 @@
             {
                 Id = Guid.NewGuid(),
                 Title = title,
-                HourlyRate = Math.Round(hourlyRate, 2),
-                DepartmentId = departmentId
+                HourlyRate = Math.Round(hourlyRate, 2)
             }, null);
         }
         public void UpdateRate(decimal newRate)
@@ -47,7 +45,7 @@
 
         public void UpdateTitle(string newTitle)
         {
-            var (_, error) = Create(newTitle, HourlyRate, DepartmentId);
+            var (_, error) = Create(newTitle, HourlyRate);
             if (error != null) throw new InvalidOperationException(error);
 
             Title = newTitle.Trim();
