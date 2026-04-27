@@ -2,7 +2,7 @@
 
 namespace BetterCRM.Core.Interfaces.Repositories
 {
-    public interface ITicketParticipant : IRepository<TicketParticipant>
+    public interface ITicketParticipantRepository : IRepository<TicketParticipant>
     {
         Task<bool> IsParticipantAsync(Guid ticketId, Guid userId);
         Task<List<TicketParticipant>> GetByTicketAync(Guid ticketId);
