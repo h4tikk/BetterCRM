@@ -98,7 +98,7 @@ namespace BetterCRM.Core.Models
             MarkAsUpdated();
         }
 
-        ublic void UpdatePassword(string newPassword)
+        public void UpdatePassword(string newPassword)
         {
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < MinPasswordLength)
                 throw new InvalidOperationException($"Пароль должен содержать минимум {MinPasswordLength} символов");
