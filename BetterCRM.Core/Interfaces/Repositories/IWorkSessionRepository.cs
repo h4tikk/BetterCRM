@@ -7,10 +7,9 @@ namespace BetterCRM.Core.Interfaces.Repositories
         Task<WorkSession?> GetActiveSessionAsync(Guid userId);
         Task<List<WorkSession>> GetAllActiveAsync();
         Task<List<WorkSession>> GetByUserAsync(Guid userId, DateTime? from = null, DateTime? to = null);
-        Task<List<WorkSession>> GetByUserAndTicketAsync(Guid userId, Guid ticketId);
-        Task<int> GetTotalHoursAsync(Guid userId, DateTime from, DateTime to);
-        Task<Dictionary<DateTime, int>> GetHoursByDayAsync(Guid userId, DateTime from, DateTime to);
-        Task<List<WorkSession>> GetByTicketAsync(Guid ticketId);
+        Task<decimal> GetTotalHoursAsync(Guid userId, DateTime from, DateTime to);
+        Task<Dictionary<DateTime, decimal>> GetHoursByDayAsync(Guid userId, DateTime from, DateTime to);
+        Task<List<WorkSession>> GetByShiftAsync(Guid shiftId);
         Task<int> GetTotalHoursByTicketAsync(Guid ticketId);
 
     }

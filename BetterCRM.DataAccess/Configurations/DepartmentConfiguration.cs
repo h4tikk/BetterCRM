@@ -11,7 +11,15 @@ namespace BetterCRM.DataAccess.Configurations
             builder.ToTable("departments");
             builder.HasKey(d => d.Id);
             builder.Property(d => d.Name).IsRequired().HasMaxLength(Department.MaxNameLength);
-            builder.HasIndex(d => d.Name).IsUnique();
+            builder.HasIndex(d => new { d.OrganizationId, d.Name }).IsUnique();
+
+            builder.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(d => d.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(d => d.CreatedAt).HasColumnType("timestampz");
+            builder.Property(d => d.UpdatedAt).HasColumnType("timestampz");
         }
     }
 }

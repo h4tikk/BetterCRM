@@ -1,15 +1,13 @@
-﻿using BetterCRM.Core.Models;
-
-namespace BetterCRM.Core.Interfaces.Services
+﻿namespace BetterCRM.Core.Interfaces.Services
 {
-    public record AuthResult(User User, string Token);
-    public record RegisterCommand(string Email, string Password, string FullName, string Role, Guid PositionId, Guid? DepartmentId);
     public record LoginCommand(string Email, string Password);
+    public record RegisterCommand(string Email, string Password, string FullName, string Role, Guid OrganizationId, Guid PositionId, Guid? DepartmentId);
+    public record CurrentUserInfo(Guid Id, string Email, string FullName, string Role, Guid OrganizationId, Guid? DepartmentId, bool IsMainDirector);
+    public record AuthResult(CurrentUserInfo User, string Token);
     public interface IAuthService
     {
         Task<AuthResult?> LoginAsync(LoginCommand command);
-        Task<User> RegisterAsync(RegisterCommand command);
-        Task<bool> ValidateTokenAsync(string token);
-        Task<User?> GetUserByTokenAsync(string token);
+        Task<CurrentUserInfo> RegisterAsync(RegisterCommand command);
+        Task<CurrentUserInfo?> ValidateTokenAsync(string token);
     }
 }

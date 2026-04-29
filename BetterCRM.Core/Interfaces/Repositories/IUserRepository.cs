@@ -6,10 +6,8 @@ namespace BetterCRM.Core.Interfaces.Repositories
     {
         Task<User?> GetByEmailAsync(string email);
         Task<List<User>> GetByDepartmentAsync(Guid departmentId);
-        Task<List<User>> GetByRoleAsync(string Role);
         Task<List<User>> GetActiveByDepartmentAsync(Guid departmentId);
 
         Task<bool> EmailExsistsAsync(string email);
-        Task<int> GetActiveUsersCountAsync(Guid? departmentId = null);
     }
 }

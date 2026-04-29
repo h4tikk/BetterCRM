@@ -18,6 +18,7 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(p => p.HourlyRate)
                 .IsRequired()
                 .HasColumnType("decimal(10,2)");
+            builder.Property(p => p.Da)
 
             builder.HasMany(p => p.Users)
                 .WithOne(u => u.Position)

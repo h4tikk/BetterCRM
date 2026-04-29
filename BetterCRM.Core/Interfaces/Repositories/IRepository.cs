@@ -2,7 +2,7 @@
 
 namespace BetterCRM.Core.Interfaces.Repositories
 {
-    public interface IRepository<T> where T :BaseEntity
+    public interface IRepository<T> where T : TenantEntity
     {
         Task<T?> GetByIdAsync(Guid id);
         Task<List<T>> GetAllAsync();

@@ -4,6 +4,7 @@ namespace BetterCRM.Core.Interfaces.Services
 {
     public record StartSessionCommand(Guid UserId, Guid? TicketId);
     public record StopSessionCommand(Guid UserId, string? Description);
+    public record ShiftAttendanceDto(decimal Scheduled, decimal Actual, decimal Penalty, decimal Overtime);
     public interface ITimeTrackingService
     {
         Task<WorkSession> StartSessionAsync(StartSessionCommand command);
