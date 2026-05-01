@@ -10,7 +10,7 @@ namespace BetterCRM.DataAccess.Repositories
 
         public async Task<List<Shift>> GetByUserAsync(Guid userId, DateTime? from = null, DateTime? to = null)
         {
-            var q = dbSet.Where(s => s.UserId == userId); 
+            var q = _dbSet.Where(s => s.UserId == userId); 
             if (from.HasValue) 
                 q = q.Where(s => s.Date >= from.Value); 
             if (to.HasValue) 
@@ -19,12 +19,12 @@ namespace BetterCRM.DataAccess.Repositories
         }
         public async Task<List<Shift>> GetByDepartmentAsync(Guid departmentId, DateTime date) 
         { 
-            var ids = await context.Users.Where(u => u.DepartmentId == departmentId).Select(u => u.Id).ToListAsync(); 
-            return await dbSet.Where(s => ids.Contains(s.UserId) && s.Date == date).ToListAsync(); 
+            var ids = await _context.Users.Where(u => u.DepartmentId == departmentId).Select(u => u.Id).ToListAsync(); 
+            return await _dbSet.Where(s => ids.Contains(s.UserId) && s.Date == date).ToListAsync(); 
         }
-        public async Task<Shift?> GetByUserAndDateAsync(Guid userId, DateTime date) 
-            => await dbSet.FirstOrDefaultAsync(s => s.UserId == userId && s.Date == date);
-        public async Task<decimal> GetTotalScheduledHoursAsync(Guid userId, DateTime from, DateTime to) 
-            => await dbSet.Where(s => s.UserId == userId && s.Date >= from && s.Date <= to).SumAsync(s => (decimal)(s.EndTime - s.StartTime).TotalHours);
+        public async Task<Shift?> GetByUserAndDateAsync(Guid userId, DateTime date) =>
+            await _dbSet.FirstOrDefaultAsync(s => s.UserId == userId && s.Date == date);
+        public async Task<decimal> GetTotalScheduledHoursAsync(Guid userId, DateTime from, DateTime to) =>
+            await _dbSet.Where(s => s.UserId == userId && s.Date >= from && s.Date <= to).SumAsync(s => (decimal)(s.EndTime - s.StartTime).TotalHours);
     }
 }

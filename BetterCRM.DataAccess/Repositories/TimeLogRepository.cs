@@ -8,13 +8,13 @@ namespace BetterCRM.DataAccess.Repositories
     {
         public TimeLogRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<List<TimeLog>> GetByWorkSessionAsync(Guid sessionId)
-            => await dbSet.Where(tl => tl.WorkSessionId == sessionId).ToListAsync();
+        public async Task<List<TimeLog>> GetByWorkSessionAsync(Guid sessionId) => 
+            await _dbSet.Where(tl => tl.WorkSessionId == sessionId).ToListAsync();
 
-        public async Task<List<TimeLog>> GetByTicketAsync(Guid ticketId)
-            => await dbSet.Where(tl => tl.TicketId == ticketId).ToListAsync();
+        public async Task<List<TimeLog>> GetByTicketAsync(Guid ticketId) => 
+            await _dbSet.Where(tl => tl.TicketId == ticketId).ToListAsync();
 
-        public async Task<decimal> GetTotalHoursByTicketAsync(Guid ticketId)
-            => await dbSet.Where(tl => tl.TicketId == ticketId).SumAsync(tl => tl.DurationHours);
+        public async Task<decimal> GetTotalHoursByTicketAsync(Guid ticketId) => 
+            await _dbSet.Where(tl => tl.TicketId == ticketId).SumAsync(tl => tl.DurationHours);
     }
 }
