@@ -4,12 +4,10 @@ namespace BetterCRM.Core.Interfaces.Repositories
 {
     public interface ITicketRepository : IRepository<Ticket>
     {
-        Task<List<Ticket>> GetByCreatorAsync(Guid creatorId);
-        Task<List<Ticket>> GetByAssigneeAndIdAsync(Guid assigneeId, Guid id);
-        Task<List<Ticket>> GetByDepartmentAsync(Guid departmentId);
-        Task<List<Ticket>> GetForUsersAsync();
+        Task<Ticket?> GetByAssigneeAndIdAsync(Guid assigneeId, Guid id);
+        Task<List<Ticket>> GetForUsersAsync(Guid userId, string role, Guid? departmentId);
         Task<List<Ticket>> GetOverdueAsync(); 
-        Task<List<Ticket>> SearchAsync(string searchTerm, Guid? departmentId = null);
-        Task<Dictionary<string, int>> GetTicketsCountByStatusAsync(Guid? departmentId = null);
+        Task<List<Ticket>> SearchAsync(string searchTerm);
+        Task<Dictionary<string, int>> GetCountByStatusAsync(Guid? departmentId = null);
     }
 }

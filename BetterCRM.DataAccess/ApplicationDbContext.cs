@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace BetterCRM.DataAccess
 {
-    internal class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : DbContext
     {
         public Guid CurrentOrganizationId { get; set; }
 

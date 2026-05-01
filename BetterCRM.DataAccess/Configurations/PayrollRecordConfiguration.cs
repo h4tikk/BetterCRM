@@ -4,7 +4,7 @@ using BetterCRM.Core.Models;
 
 namespace BetterCRM.DataAccess.Configurations
 {
-    internal class PayrollRecordConfiguration : IEntityTypeConfiguration<PayrollRecord>
+    public class PayrollRecordConfiguration : IEntityTypeConfiguration<PayrollRecord>
     {
         public void Configure(EntityTypeBuilder<PayrollRecord> builder)
         {

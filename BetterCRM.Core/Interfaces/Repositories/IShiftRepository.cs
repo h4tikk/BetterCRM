@@ -6,7 +6,7 @@ namespace BetterCRM.Core.Interfaces.Repositories
     {
         Task<List<Shift>> GetByUserAsync(Guid userId, DateTime? from = null, DateTime? to = null);
         Task<List<Shift>> GetByDepartmentAsync(Guid departmentId, DateTime date);
-        Task<Shift?> GetByUSerAndDateAsync(Guid userId, DateTime date);
+        Task<Shift?> GetByUserAndDateAsync(Guid userId, DateTime date);
         Task<decimal> GetTotalScheduledHoursAsync(Guid userId, DateTime from, DateTime to);
     }
 }
