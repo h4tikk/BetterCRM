@@ -18,12 +18,13 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(p => p.HourlyRate)
                 .IsRequired()
                 .HasColumnType("decimal(10,2)");
-            builder.Property(p => p.Da)
+            builder.Property(p => p.DailyNormHours).IsRequired().HasColumnType("integer");
 
-            builder.HasMany(p => p.Users)
-                .WithOne(u => u.Position)
-                .HasForeignKey(u => u.PositionId)
+            builder.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(p => p.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+            builder.Property(p => p.CreatedAt).HasColumnType("timestamptz");
 
         }
     }

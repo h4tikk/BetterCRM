@@ -17,9 +17,12 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(t => t.Status).IsRequired().HasMaxLength(30);
             builder.Property(t => t.SLATargetHours).HasColumnType("decimal(5,2)");
 
-            builder.HasIndex(t => new { t.Status, t.CreatedAt });
-            builder.HasIndex(t => t.AssigneeId);
-            builder.HasIndex(t => t.CreatorId);
+            builder.HasIndex(t => new { t.OrganizationId, t.Status, t.CreatedAt });
+            
+            builder.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(t => t.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(t => t.Creator)
                 .WithMany(u => u.CreatedTickets)
@@ -31,9 +34,14 @@ namespace BetterCRM.DataAccess.Configurations
                 .HasForeignKey(t => t.AssigneeId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.Property(t => t.CreatedAt).HasColumnType("timestampz");
-            builder.Property(t => t.ResolvedAt).HasColumnType("timestampz");
-            builder.Property(t => t.UpdatedAt).HasColumnType("timestampz");
+            builder.HasMany(t => t.Participants)
+                .WithOne(tp => tp.Ticket)
+                .HasForeignKey(tp => tp.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(t => t.CreatedAt).HasColumnType("timestamptz");
+            builder.Property(t => t.ResolvedAt).HasColumnType("timestamptz");
+            builder.Property(t => t.UpdatedAt).HasColumnType("timestamptz");
         }
     }
 }

@@ -18,8 +18,8 @@ namespace BetterCRM.DataAccess.Configurations
                 .HasForeignKey(d => d.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Property(d => d.CreatedAt).HasColumnType("timestampz");
-            builder.Property(d => d.UpdatedAt).HasColumnType("timestampz");
+            builder.Property(d => d.CreatedAt).HasColumnType("timestamptz");
+            builder.Property(d => d.UpdatedAt).HasColumnType("timestamptz");
         }
     }
 }

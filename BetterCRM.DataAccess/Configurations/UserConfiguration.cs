@@ -14,8 +14,11 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(u => u.PasswordHash).IsRequired().HasMaxLength(512);
             builder.Property(u => u.FullName).IsRequired().HasMaxLength(User.MaxFullNameLength);
             builder.Property(u => u.Role).IsRequired().HasMaxLength(30);
-
-            builder.HasIndex(u => u.Email).IsUnique();
+            builder.HasIndex(u => new { u.OrganizationId, u.Email }).IsUnique();
+            builder.HasOne<Organization>()
+                .WithMany()
+                .HasForeignKey(u => u.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(u => u.Department)
                 .WithMany()
@@ -26,6 +29,9 @@ namespace BetterCRM.DataAccess.Configurations
                 .WithMany()
                 .HasForeignKey(u => u.PositionId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(u => u.HireDate).HasColumnType("date");
+            builder.Property(u => u.CreatedAt).HasColumnType("timestamptz");
         }
     }
 }

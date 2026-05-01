@@ -13,8 +13,12 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(o => o.Name).IsRequired().HasMaxLength(Organization.MaxNameLength);
             builder.Property(o => o.Slug).IsRequired().HasMaxLength(100);
             builder.HasIndex(o => o.Slug).IsUnique();
-            builder.Property(o => o.CreatedAt).HasColumnType("timestampz");
-            builder.Property(o => o.UpdatedAt).HasColumnType("timestampz");
+            builder.HasOne(o => o.MainDirector).WithOne()
+                .HasForeignKey<Organization>(o => o.MainDirector)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Property(o => o.CreatedAt).HasColumnType("timestamptz");
+            builder.Property(o => o.UpdatedAt).HasColumnType("timestamptz");
         }
     }
 }
