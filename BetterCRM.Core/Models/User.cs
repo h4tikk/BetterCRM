@@ -5,23 +5,23 @@ namespace BetterCRM.Core.Models
 {
     public class User : TenantEntity
     {
-        public string Email { get; private set; } = string.Empty;
-        public string PasswordHash { get; private set; } = string.Empty;
-        public string FullName { get; private set; } = string.Empty;
-        public string Role { get; private set; } = string.Empty;
-        public Guid? DepartmentId { get; private set; }
-        public Guid PositionId { get; private set; }
-        public DateTime HireDate { get; private set; }
-        public bool IsActive { get; private set; } = true;
+        public string Email { get; internal set; } = string.Empty;
+        public string PasswordHash { get; internal set; } = string.Empty;
+        public string FullName { get; internal set; } = string.Empty;
+        public string Role { get; internal set; } = string.Empty;
+        public Guid? DepartmentId { get; internal set; }
+        public Guid PositionId { get; internal set; }
+        public DateTime HireDate { get; internal set; }
+        public bool IsActive { get; internal set; } = true;
 
-        public Department? Department { get; private set; }
-        public Position Position { get; private set; } = null!;
-        public ICollection<Ticket> CreatedTickets { get; private set; } = new List<Ticket>();
-        public ICollection<Ticket> AssignedTickets { get; private set; } = new List<Ticket>();
-        public ICollection<WorkSession> WorkSessions { get; private set; } = new List<WorkSession>();
-        public ICollection<TicketParticipant> TicketParticipations { get; private set; } = new List<TicketParticipant>();
-        public ICollection<PayrollRecord> PayrollRecords { get; private set; } = new List<PayrollRecord>();
-        public ICollection<Shift> Shifts { get; private set; } = new List<Shift>();
+        public Department? Department { get; internal set; }
+        public Position Position { get; internal set; } = null!;
+        public ICollection<Ticket> CreatedTickets { get; internal set; } = new List<Ticket>();
+        public ICollection<Ticket> AssignedTickets { get; internal set; } = new List<Ticket>();
+        public ICollection<WorkSession> WorkSessions { get; internal set; } = new List<WorkSession>();
+        public ICollection<TicketParticipant> TicketParticipations { get; internal set; } = new List<TicketParticipant>();
+        public ICollection<PayrollRecord> PayrollRecords { get; internal set; } = new List<PayrollRecord>();
+        public ICollection<Shift> Shifts { get; internal set; } = new List<Shift>();
 
         public const int MinEmailLength = 5;
         public const int MaxEmailLength = 256;
@@ -75,7 +75,7 @@ namespace BetterCRM.Core.Models
                 IsActive = true
             }, null);
         }
-        private static string HashPassword(string password)
+        internal static string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
             var bytes = Encoding.UTF8.GetBytes(password + "CourseProjectSalt2026");

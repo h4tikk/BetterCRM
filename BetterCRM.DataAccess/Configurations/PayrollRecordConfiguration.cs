@@ -1,12 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using BetterCRM.Core.Models;
 
 namespace BetterCRM.DataAccess.Configurations
 {
-    public class PayrollRecordConfiguration : IEntityTypeConfiguration<PayrollRecord>
+    public class PayrollRecordConfiguration : IEntityTypeConfiguration<PayrollRecordEntity>
     {
-        public void Configure(EntityTypeBuilder<PayrollRecord> builder)
+        public void Configure(EntityTypeBuilder<PayrollRecordEntity> builder)
         {
             builder.ToTable("payroll_records");
             builder.HasKey(pr => pr.Id);

@@ -2,8 +2,8 @@
 {
     public class Department : TenantEntity
     {
-        public string Name { get; private set; } = string.Empty;
-        public ICollection<User> Users { get; private set; } = new List<User>();
+        public string Name { get; internal set; } = string.Empty;
+        public ICollection<User> Users { get; internal set; } = new List<User>();
 
         public const int MinNameLength = 2;
         public const int MaxNameLength = 100;

@@ -2,7 +2,7 @@
 
 namespace BetterCRM.Core.Interfaces.Repositories
 {
-    internal interface IDepartmentRepository : IRepository<Department>
+    public interface IDepartmentRepository : IRepository<Department>
     {
         Task<Department?> GetByNameAsync(string name);
         Task<bool> NameExistsAsync(string name);

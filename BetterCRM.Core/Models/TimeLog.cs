@@ -2,12 +2,12 @@
 {
     public class TimeLog : TenantEntity
     {
-        public Guid WorkSessionId { get; private set; }
-        public WorkSession WorkSession { get; private set; } = null!;
-        public Guid TicketId { get; private set; }
-        public Ticket Ticket { get; private set; } = null!;
-        public decimal DurationHours { get; private set; }
-        public string? Description { get; private set; }
+        public Guid WorkSessionId { get; internal set; }
+        public WorkSession WorkSession { get; internal set; } = null!;
+        public Guid TicketId { get; internal set; }
+        public Ticket Ticket { get; internal set; } = null!;
+        public decimal DurationHours { get; internal set; }
+        public string? Description { get; internal set; }
 
         private TimeLog() { }
 

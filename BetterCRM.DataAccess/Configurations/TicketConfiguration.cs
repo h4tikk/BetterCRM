@@ -1,12 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using BetterCRM.Core.Models;
 
 namespace BetterCRM.DataAccess.Configurations
 {
-    public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
+    public class TicketConfiguration : IEntityTypeConfiguration<TicketEntity>
     {
-        public void Configure(EntityTypeBuilder<Ticket> builder)
+        public void Configure(EntityTypeBuilder<TicketEntity> builder)
         {
             builder.ToTable("tickets");
             builder.HasIndex(t => t.Id);

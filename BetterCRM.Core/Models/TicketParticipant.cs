@@ -2,13 +2,13 @@
 {
     public class TicketParticipant : TenantEntity
     {
-        public Guid TicketId { get; private set; }
-        public Guid UserId { get; private set; }
-        public DateTime JoinedAt { get; private set; }
-        public string Role { get; private set; } = string.Empty;
+        public Guid TicketId { get; internal set; }
+        public Guid UserId { get; internal set; }
+        public DateTime JoinedAt { get; internal set; }
+        public string Role { get; internal set; } = string.Empty;
 
-        public Ticket Ticket { get; private set; } = null!;
-        public User User { get; private set; } = null!;
+        public Ticket Ticket { get; internal set; } = null!;
+        public User User { get; internal set; } = null!;
 
         public static readonly string[] ValidRoles = { "Worker", "Reviewer", "Observer" };
         private TicketParticipant() { }

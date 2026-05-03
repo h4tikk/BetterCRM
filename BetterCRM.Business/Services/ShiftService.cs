@@ -2,6 +2,7 @@
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
 using BetterCRM.Core.Models;
+using System.Data;
 using static BetterCRM.Business.Exceptions.DomainException;
 
 
@@ -55,18 +56,14 @@ namespace BetterCRM.Business.Services
         }
         private async Task ValidateAccessAsync(Guid actorId, string actorRole, Guid? actorDeptId, Guid targetUserId)
         {
-            var target = await _userRepo.GetByIdAsync(targetUserId)
-                         ?? throw new NotFoundException("Целевой пользователь не найден");
-            if (actorRole == "Admin" || actorRole == "MainDirector")
-                return;
+            var target = await _userRepo.GetByIdAsync(targetUserId);
+            if (target == null) throw new InvalidOperationException("Пользователь не найден");
 
-            if (actorRole == "DepartmentHead" && actorDeptId.HasValue && target.DepartmentId == actorDeptId.Value)
-                return;
+            if (actorRole == "Admin" || actorRole == "DepartmentHead") { }
+            else throw new UnauthorizedAccessException("Недостаточно прав");
 
-            if (actorId == targetUserId)
-                return;
-
-            throw new UnauthorizedOperationException("Недостаточно прав для управления сменами");
+            if (actorRole == "DepartmentHead" && actorDeptId.HasValue && target.DepartmentId != actorDeptId.Value)
+                throw new UnauthorizedAccessException("Нельзя управлять сменами другого отдела");
         }
     }
 }

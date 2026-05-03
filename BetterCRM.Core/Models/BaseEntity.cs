@@ -2,9 +2,9 @@
 {
     public abstract class BaseEntity
     {
-        public Guid Id { get; protected set; }
-        public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; protected set; }
+        public Guid Id { get; internal set; }
+        public DateTime CreatedAt { get; internal set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; internal set; }
 
         protected void MarkAsUpdated() => UpdatedAt = DateTime.UtcNow;
 

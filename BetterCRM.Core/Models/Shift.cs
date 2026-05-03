@@ -2,12 +2,12 @@
 {
     public class Shift : TenantEntity
     {
-        public Guid UserId { get; private set; }
-        public User User { get; private set; } = null!;
-        public DateTime Date { get; private set;  }
-        public TimeSpan StartTime { get; private set; }
-        public TimeSpan EndTime { get; private set; }
-        public string Status { get; private set; } = "Scheduled";
+        public Guid UserId { get; internal set; }
+        public User User { get; internal set; } = null!;
+        public DateTime Date { get; internal set;  }
+        public TimeSpan StartTime { get; internal set; }
+        public TimeSpan EndTime { get; internal set; }
+        public string Status { get; internal set; } = "Scheduled";
 
         private Shift() { }
 

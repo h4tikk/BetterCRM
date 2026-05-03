@@ -2,11 +2,11 @@
 {
     public class Organization : BaseEntity
     {
-        public string Name { get; private set; } = string.Empty;
-        public string Slug { get; private set; } = string.Empty;
-        public bool IsActive { get; private set; } = true;
-        public Guid? MainDirectorId { get; private set; }
-        public User? MainDirector { get; private set; }
+        public string Name { get; internal set; } = string.Empty;
+        public string Slug { get; internal set; } = string.Empty;
+        public bool IsActive { get; internal set; } = true;
+        public Guid? MainDirectorId { get; internal set; }
+        public User? MainDirector { get; internal set; }
 
         public const int MaxNameLength = 100;
         public const int MinNameLength = 2;
@@ -31,7 +31,7 @@
         public void AssignMainDirector(Guid userId) => MainDirectorId = userId;
         public bool IsMainDirector(Guid userId) => MainDirectorId == userId;
 
-        private static string GenerateSlug(string name) =>
+        internal static string GenerateSlug(string name) =>
             new string(name.ToLower().Where(c => char.IsLetterOrDigit(c) || c == '-').ToArray());
     }
 }

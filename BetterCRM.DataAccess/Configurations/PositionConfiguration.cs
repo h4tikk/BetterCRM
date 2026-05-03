@@ -1,12 +1,13 @@
 ﻿using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BetterCRM.DataAccess.Configurations
 {
-    public class PositionConfiguration : IEntityTypeConfiguration<Position>
+    public class PositionConfiguration : IEntityTypeConfiguration<PositionEntity>
     {
-        public void Configure(EntityTypeBuilder<Position> builder)
+        public void Configure(EntityTypeBuilder<PositionEntity> builder)
         {
             builder.ToTable("positions");
             builder.HasKey(p => p.Id);

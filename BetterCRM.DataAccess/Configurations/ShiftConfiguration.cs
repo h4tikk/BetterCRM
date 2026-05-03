@@ -1,12 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using BetterCRM.Core.Models;
 
 namespace BetterCRM.DataAccess.Configurations
 {
-    public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
+    public class ShiftConfiguration : IEntityTypeConfiguration<ShiftEntity>
     {
-        public void Configure(EntityTypeBuilder<Shift> builder)
+        public void Configure(EntityTypeBuilder<ShiftEntity> builder)
         {
             builder.ToTable("shifts");
             builder.HasKey(s => s.Id);

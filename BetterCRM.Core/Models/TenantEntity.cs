@@ -2,6 +2,6 @@
 {
     public class TenantEntity : BaseEntity
     {
-         public Guid OrganizationId { get; protected set; }
+         public Guid OrganizationId { get; internal set; }
     }
 }

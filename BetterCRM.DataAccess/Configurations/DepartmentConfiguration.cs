@@ -1,19 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
 
 namespace BetterCRM.DataAccess.Configurations
 {
-    public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
+    public class DepartmentConfiguration : IEntityTypeConfiguration<DepartmentEntity>
     {
-        public void Configure(EntityTypeBuilder<Department> builder) 
+        public void Configure(EntityTypeBuilder<DepartmentEntity> builder) 
         {
             builder.ToTable("departments");
             builder.HasKey(d => d.Id);
-            builder.Property(d => d.Name).IsRequired().HasMaxLength(Department.MaxNameLength);
+            builder.Property(d => d.Name).IsRequired().HasMaxLength(100);
             builder.HasIndex(d => new { d.OrganizationId, d.Name }).IsUnique();
 
-            builder.HasOne<Organization>()
+            builder.HasOne<OrganizationEntity>()
                 .WithMany()
                 .HasForeignKey(d => d.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);

@@ -4,15 +4,15 @@ namespace BetterCRM.Core.Models
 {
     public class WorkSession : TenantEntity
     {
-        public Guid UserId { get; private set; }
-        public User User { get; private set; } = null!;
-        public Guid? ShiftId { get; private set; }
-        public Shift? Shift { get; private set; }
-        public DateTime StartedAt { get; private set; }
-        public DateTime? EndedAt { get; private set; }
-        public string? Comment { get; private set; }
+        public Guid UserId { get; internal set; }
+        public User User { get; internal set; } = null!;
+        public Guid? ShiftId { get; internal set; }
+        public Shift? Shift { get; internal set; }
+        public DateTime StartedAt { get; internal set; }
+        public DateTime? EndedAt { get; internal set; }
+        public string? Comment { get; internal set; }
 
-        public ICollection<TimeLog> TimeLogs { get; private set; } = new List<TimeLog>();
+        public ICollection<TimeLog> TimeLogs { get; internal set; } = new List<TimeLog>();
 
         public const int MaxCommentLength = 300;
         public const int MaxSessionHours = 24;

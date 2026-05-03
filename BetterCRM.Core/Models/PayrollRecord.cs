@@ -2,19 +2,19 @@
 {
     public class PayrollRecord : TenantEntity
     {
-        public Guid UserId { get; private set; }
-        public DateTime PeriodStart { get; private set; }
-        public DateTime PeriodEnd { get; private set; }
+        public Guid UserId { get; internal set; }
+        public DateTime PeriodStart { get; internal set; }
+        public DateTime PeriodEnd { get; internal set; }
 
-        public decimal ScheduledHours { get; private set; }   
-        public decimal ActualHours { get; private set; }      
-        public decimal PenaltyHours { get; private set; }    
-        public decimal BillableHours { get; private set; }    
-        public decimal HourlyRate { get; private set; }
-        public decimal CalculatedSalary { get; private set; }
-        public string Status { get; private set; } = string.Empty;
+        public decimal ScheduledHours { get; internal set; }   
+        public decimal ActualHours { get; internal set; }      
+        public decimal PenaltyHours { get; internal set; }    
+        public decimal BillableHours { get; internal set; }    
+        public decimal HourlyRate { get; internal set; }
+        public decimal CalculatedSalary { get; internal set; }
+        public string Status { get; internal set; } = string.Empty;
 
-        public User User { get; private set; } = null!;
+        public User User { get; internal set; } = null!;
 
         public static readonly string[] ValidStatuses = { "Calculated", "Approved", "Paid" };
         private PayrollRecord() { }

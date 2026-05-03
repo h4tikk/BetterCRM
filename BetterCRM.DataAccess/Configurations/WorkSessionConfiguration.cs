@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using BetterCRM.Core.Models;
 namespace BetterCRM.DataAccess.Configurations
 {
-    public class WorkSessionConfiguration : IEntityTypeConfiguration<WorkSession>
+    public class WorkSessionConfiguration : IEntityTypeConfiguration<WorkSessionEntity>
     {
-        public void Configure(EntityTypeBuilder<WorkSession> builder)
+        public void Configure(EntityTypeBuilder<WorkSessionEntity> builder)
         {
             builder.ToTable("work_sessions");
             builder.HasKey(ws => ws.Id);

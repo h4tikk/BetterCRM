@@ -1,12 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using BetterCRM.Core.Models;
 
 namespace BetterCRM.DataAccess.Configurations
 {
-    public class TimeLogConfiguration : IEntityTypeConfiguration<TimeLog>
+    public class TimeLogConfiguration : IEntityTypeConfiguration<TimeLogEntity>
     {
-        public void Configure(EntityTypeBuilder<TimeLog> builder) 
+        public void Configure(EntityTypeBuilder<TimeLogEntity> builder) 
         {
             builder.ToTable("time_logs");
             builder.HasKey(tl => tl.Id);

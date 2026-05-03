@@ -2,12 +2,12 @@
 {
     public class Position : TenantEntity
     {
-        public string Title { get; private set; } = string.Empty;
-        public decimal HourlyRate { get; private set; }
-        public int DailyNormHours { get; private set; }
+        public string Title { get; internal set; } = string.Empty;
+        public decimal HourlyRate { get; internal set; }
+        public int DailyNormHours { get; internal set; }
 
 
-        public ICollection<User> Users { get; private set; } = new List<User>();
+        public ICollection<User> Users { get; internal set; } = new List<User>();
 
         public const int MinTitleLength = 4;
         public const int MaxTitleLength = 100;

@@ -2,20 +2,20 @@
 {
     public class Ticket : TenantEntity
     {
-        public string Title { get; private set; } = string.Empty;
-        public string? Description { get; private set; }
-        public string Priority { get; private set; } = string.Empty;
-        public string Status { get; private set; } = string.Empty;
-        public Guid CreatorId { get; private set; }
-        public Guid? AssigneeId { get; private set; }
-        public DateTime? ResolvedAt { get; private set; }
-        public decimal SLATargetHours { get; private set; }
-        public bool IsSLABreached { get; private set; }
+        public string Title { get; internal set; } = string.Empty;
+        public string? Description { get; internal set; }
+        public string Priority { get; internal set; } = string.Empty;
+        public string Status { get; internal set; } = string.Empty;
+        public Guid CreatorId { get; internal set; }
+        public Guid? AssigneeId { get; internal set; }
+        public DateTime? ResolvedAt { get; internal set; }
+        public decimal SLATargetHours { get; internal set; }
+        public bool IsSLABreached { get; internal set; }
 
-        public User Creator { get; private set; } = null!;
-        public User? Assignee { get; private set; }
-        public ICollection<TicketParticipant> Participants { get; private set; } = new List<TicketParticipant>();
-        public ICollection<TimeLog> TimeLogs { get; private set; } = new List<TimeLog>();
+        public User Creator { get; internal set; } = null!;
+        public User? Assignee { get; internal set; }
+        public ICollection<TicketParticipant> Participants { get; internal set; } = new List<TicketParticipant>();
+        public ICollection<TimeLog> TimeLogs { get; internal set; } = new List<TimeLog>();
 
         public const int MinTitleLength = 1;
         public const int MaxTitleLength = 200;
