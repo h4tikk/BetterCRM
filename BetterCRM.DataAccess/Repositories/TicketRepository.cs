@@ -8,43 +8,89 @@ namespace BetterCRM.DataAccess.Repositories
     public class TicketRepository : Repository<Ticket, TicketEntity>, ITicketRepository
     {
         public TicketRepository(ApplicationDbContext context) : base(context) { }
+
         protected override Ticket MapToDomain(TicketEntity db) => DomainMapper.ToTicketDomain(db);
         protected override TicketEntity MapToDb(Ticket domain, TicketEntity? existing = null) => DomainMapper.ToTicketDb(domain, existing);
 
-        private IQueryable<TicketEntity> BaseQuery => _dbSet.Include(t => t.Assignee).Include(t => t.Creator);
+        private IQueryable<TicketEntity> BaseQuery =>
+            _dbSet.Include(t => t.Creator).Include(t => t.Assignee).Include(t => t.Participants);
 
+        // ✅ ПОЛНОСТЬЮ ПЕРЕПИСАН: корректная фильтрация по всем ролям
         public async Task<List<Ticket>> GetForUsersAsync(Guid userId, string role, Guid? departmentId)
         {
             IQueryable<TicketEntity> q = BaseQuery;
-            if (role == "DepartmentHead" && departmentId.HasValue)
+
+            if (role == "Admin" || role == "OrganizationHead")
             {
-                var ids = await _context.Users.Where(u => u.DepartmentId == departmentId.Value).Select(u => u.Id).ToListAsync();
-                q = q.Where(t => ids.Contains(t.AssigneeId!.Value) || ids.Contains(t.CreatorId));
+                // Видят все тикеты организации (global query filter уже применён)
             }
-            else if (role == "Employee")
+            else if (role == "DepartmentHead" && departmentId.HasValue)
             {
-                q = q.Where(t => t.AssigneeId == userId || t.CreatorId == userId);
+                var deptUserIds = await _context.Users
+                    .Where(u => u.DepartmentId == departmentId.Value)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                q = q.Where(t =>
+                    t.DepartmentId == departmentId.Value ||
+                    deptUserIds.Contains(t.CreatorId) ||
+                    (t.AssigneeId.HasValue && deptUserIds.Contains(t.AssigneeId.Value)));
             }
-            var list = await q.OrderByDescending(t => t.CreatedAt).ToListAsync();
-            return list.Select(MapToDomain).ToList();
+            else // Employee
+            {
+                // Тикеты где пользователь — участник
+                var participatingIds = await _context.TicketParticipants
+                    .Where(tp => tp.UserId == userId)
+                    .Select(tp => tp.TicketId)
+                    .ToListAsync();
+
+                q = q.Where(t =>
+                    t.CreatorId == userId ||
+                    t.AssigneeId == userId ||
+                    participatingIds.Contains(t.Id));
+
+                // Employee не видит чужие черновики
+                q = q.Where(t => !(t.Status == "Draft" && t.CreatorId != userId));
+            }
+
+            return (await q.OrderByDescending(t => t.CreatedAt).ToListAsync())
+                .Select(MapToDomain).ToList();
         }
 
+        // ✅ НОВОЕ: тикеты с истёкшим SLA, у которых штраф ещё не начислен
+        // Используется фоновым джобом для начисления OverduePenaltyHours
+        public async Task<List<Ticket>> GetOverdueWithoutPenaltyAsync()
+        {
+            var now = DateTime.UtcNow;
+            var candidates = await BaseQuery
+                .Where(t =>
+                    (t.Status == "Open" || t.Status == "InProgress") &&
+                    !t.IsSLABreached &&
+                    t.OverduePenaltyHours == 0)
+                .ToListAsync();
+
+            // Финальная проверка в памяти (SLATargetHours — decimal, сложно сравнивать с TimeSpan в SQL)
+            return candidates
+                .Where(t => (now - t.CreatedAt).TotalHours > (double)t.SLATargetHours)
+                .Select(MapToDomain).ToList();
+        }
+
+        // Оставлен для обратной совместимости — возвращает уже просроченные тикеты
         public async Task<List<Ticket>> GetOverdueAsync()
         {
-            var list = await BaseQuery.Where(t => t.IsSLABreached && (t.Status == "Open" || t.Status == "InProgress")).ToListAsync();
+            var list = await BaseQuery
+                .Where(t => t.IsSLABreached && (t.Status == "Open" || t.Status == "InProgress"))
+                .ToListAsync();
             return list.Select(MapToDomain).ToList();
         }
 
         public async Task<List<Ticket>> SearchAsync(string searchTerm)
         {
-            var list = await BaseQuery.Where(t => t.Title.Contains(searchTerm) || (t.Description != null && t.Description.Contains(searchTerm))).ToListAsync();
+            var list = await BaseQuery
+                .Where(t => t.Title.Contains(searchTerm) ||
+                            (t.Description != null && t.Description.Contains(searchTerm)))
+                .ToListAsync();
             return list.Select(MapToDomain).ToList();
-        }
-
-        public async Task<Ticket?> GetByAssigneeAndIdAsync(Guid assigneeId, Guid id)
-        {
-            var db = await BaseQuery.FirstOrDefaultAsync(t => t.AssigneeId == assigneeId && t.Id == id);
-            return db != null ? MapToDomain(db) : null;
         }
 
         public async Task<Dictionary<string, int>> GetCountByStatusAsync(Guid? departmentId = null)
@@ -52,13 +98,41 @@ namespace BetterCRM.DataAccess.Repositories
             IQueryable<TicketEntity> q = _dbSet;
             if (departmentId.HasValue)
             {
-                var ids = await _context.Users.Where(u => u.DepartmentId == departmentId.Value).Select(u => u.Id).ToListAsync();
-                q = q.Where(t => ids.Contains(t.AssigneeId!.Value) || ids.Contains(t.CreatorId));
+                var ids = await _context.Users
+                    .Where(u => u.DepartmentId == departmentId.Value)
+                    .Select(u => u.Id).ToListAsync();
+
+                q = q.Where(t =>
+                    t.DepartmentId == departmentId.Value ||
+                    ids.Contains(t.CreatorId) ||
+                    (t.AssigneeId.HasValue && ids.Contains(t.AssigneeId.Value)));
             }
             return await q.GroupBy(t => t.Status).ToDictionaryAsync(g => g.Key, g => g.Count());
         }
 
-        
-    }
-}
+        // ✅ НОВОЕ: суммарный штраф за просроченные тикеты пользователя за период
+        // Используется в PayrollService при расчёте зарплаты
+        public async Task<decimal> GetTicketPenaltyHoursAsync(Guid userId, DateTime from, DateTime to) =>
+            await _dbSet
+                .Where(t =>
+                    (t.AssigneeId == userId || t.CreatorId == userId) &&
+                    t.IsSLABreached &&
+                    t.OverduePenaltyHours > 0 &&
+                    t.CreatedAt >= from && t.CreatedAt <= to)
+                .SumAsync(t => t.OverduePenaltyHours);
 
+        public async Task<Ticket?> GetByAssigneeAndIdAsync(Guid assigneeId, Guid id)
+        {
+            var db = await _dbSet
+                .Include(t => t.Assignee)
+                .Include(t => t.Creator)
+                .Include(t => t.Participants)
+                .ThenInclude(p => p.User)   
+                .Include(t => t.TimeLogs)
+                .FirstOrDefaultAsync(t => t.AssigneeId == assigneeId && t.Id == id);
+
+            return db != null ? MapToDomain(db) : null;
+        }
+    }
+
+}

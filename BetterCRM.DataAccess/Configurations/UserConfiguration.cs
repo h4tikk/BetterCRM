@@ -16,7 +16,7 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(u => u.FullName).IsRequired().HasMaxLength(User.MaxFullNameLength);
             builder.Property(u => u.Role).IsRequired().HasMaxLength(30);
             builder.HasIndex(u => new { u.OrganizationId, u.Email }).IsUnique();
-            builder.HasOne<Organization>()
+            builder.HasOne<OrganizationEntity>()
                 .WithMany()
                 .HasForeignKey(u => u.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);

@@ -1,4 +1,4 @@
-using BetterCRM.Api.Moddleware;
+using BetterCRM.Api.Middleware;
 using BetterCRM.Business.Services;
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
@@ -7,12 +7,9 @@ using BetterCRM.DataAccess.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
@@ -36,7 +33,9 @@ builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ITimeTrackingService, TimeTrackingService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
 
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key не задан в конфигурации");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
@@ -48,37 +47,51 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero 
         };
     });
+
 builder.Services.AddAuthorization();
 
-builder.Services.AddCors(opt => opt.AddPolicy("AllowVue", p => p
-    .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
-    .AllowAnyMethod().AllowAnyHeader().AllowCredentials()));
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? ["http://localhost:5173"];
+
+builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
+    .WithOrigins(allowedOrigins)
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials()));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    if (db.Database.GetPendingMigrations().Any())
+    var pending = db.Database.GetPendingMigrations().ToList();
+    if (pending.Count > 0)
     {
+        Console.WriteLine($"⏳ Применяем {pending.Count} миграций...");
         db.Database.Migrate();
-        Console.WriteLine("✅ Migrations applied.");
+        Console.WriteLine("✅ Миграции применены.");
     }
+
+    app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowVue");
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<OrganizationMiddleware>();
+
+
+app.UseOrganizationContext();
 
 app.MapControllers();
-app.MapOpenApi();
 app.Run();

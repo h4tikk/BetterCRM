@@ -14,7 +14,7 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(tl => tl.DurationHours).HasColumnType("decimal(5,2)");
             builder.HasIndex(tl => new { tl.OrganizationId, tl.TicketId });
 
-            builder.HasOne<Organization>()
+            builder.HasOne<OrganizationEntity>()
                 .WithMany()
                 .HasForeignKey(tl => tl.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
