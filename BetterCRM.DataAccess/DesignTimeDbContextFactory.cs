@@ -11,7 +11,7 @@ namespace BetterCRM.DataAccess
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
             optionsBuilder.UseNpgsql(
-                "Host=localhost;Port=5432;Database=bettercrm;Username=postgres;Password=yourpassword");
+                "Host=localhost;Port=5432;Database=bettercrm;Username=postgres;Password=test123");
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

@@ -2,9 +2,6 @@
 using BetterCRM.Core.Models;
 using BetterCRM.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BetterCRM.DataAccess.Repositories
 {

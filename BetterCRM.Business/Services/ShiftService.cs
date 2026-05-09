@@ -22,7 +22,6 @@ namespace BetterCRM.Business.Services
         {
             await ValidateAccessAsync(creatorRole, creatorDeptId, cmd.UserId);
 
-            // ✅ ИСПРАВЛЕНО: опечатка "Польщователь" → "Пользователь"
             var user = await _userRepo.GetByIdAsync(cmd.UserId)
                 ?? throw new NotFoundException("Пользователь не найден");
 
@@ -35,11 +34,9 @@ namespace BetterCRM.Business.Services
             return await _shiftRepo.AddAsync(shift);
         }
 
-        // ✅ ИСПРАВЛЕНО: принимает диапазон дат вместо одного дня
         public async Task<List<Shift>> GetForDepartmentAsync(Guid departmentId, DateTime from, DateTime to) =>
             await _shiftRepo.GetByDepartmentAsync(departmentId, from, to);
 
-        // ✅ НОВОЕ: расписание всей организации
         public async Task<List<Shift>> GetForOrganizationAsync(DateTime from, DateTime to) =>
             await _shiftRepo.GetForOrganizationAsync(from, to);
 

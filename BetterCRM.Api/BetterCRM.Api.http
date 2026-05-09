@@ -1,6 +1,14 @@
 @BetterCRM.Api_HostAddress = http://localhost:5188
+POST {{BetterCRM.Api_HostAddress}}/api/auth/register
+Content-Type: application/json
 
-GET {{BetterCRM.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
+{
+  "email": "admin@company.com",
+  "password": "Admin123",
+  "fullName": "Иван Иванов",
+  "role": "Admin",
+  "organizationId": "00000000-0000-0000-0000-000000000001",
+  "positionId": "00000000-0000-0000-0000-000000000001",
+  "departmentId": null
+}
 ###

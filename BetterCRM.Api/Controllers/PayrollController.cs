@@ -12,10 +12,6 @@ namespace BetterCRM.Api.Controllers
         public PayrollController(IPayrollService payroll, ICurrentUserProvider up)
             : base(up) => _payroll = payroll;
 
-        /// <summary>
-        /// Предварительный расчёт (без сохранения) — для дашборда сотрудника.
-        /// Сотрудник видит только свой расчёт, Admin/руководители — любого.
-        /// </summary>
         [HttpGet("preview")]
         public async Task<IActionResult> Preview(
             [FromQuery] int? year, [FromQuery] int? month)
@@ -26,7 +22,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(record);
         }
 
-        /// <summary>Предварительный расчёт для конкретного пользователя</summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpGet("preview/user/{userId:guid}")]
         public async Task<IActionResult> PreviewForUser(
@@ -39,10 +34,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(record);
         }
 
-        /// <summary>
-        /// Рассчитать и сохранить расчёт зарплаты пользователя.
-        /// Только Admin, OrganizationHead.
-        /// </summary>
         [Authorize(Roles = "Admin,OrganizationHead")]
         [HttpPost("calculate/user/{userId:guid}")]
         public async Task<IActionResult> CalculateForUser(
@@ -53,10 +44,7 @@ namespace BetterCRM.Api.Controllers
             return Ok(record);
         }
 
-        /// <summary>
-        /// Рассчитать зарплату для всего отдела.
-        /// DepartmentHead — только своего отдела. Admin/OrganizationHead — любого.
-        /// </summary>
+
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpPost("calculate/department/{departmentId:guid}")]
         public async Task<IActionResult> CalculateForDepartment(
@@ -69,10 +57,7 @@ namespace BetterCRM.Api.Controllers
             return Ok(records);
         }
 
-        /// <summary>
-        /// Получить сохранённый расчёт для пользователя.
-        /// Employee видит только свой.
-        /// </summary>
+
         [HttpGet("user/{userId:guid}")]
         public async Task<IActionResult> GetRecord(
             Guid userId,

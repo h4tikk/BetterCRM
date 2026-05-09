@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using BCrypt.Net;
 
 namespace BetterCRM.Core.Models
 {
@@ -28,7 +27,11 @@ namespace BetterCRM.Core.Models
         public const int MinPasswordLength = 6;
         public const int MinFullNameLength = 2;
         public const int MaxFullNameLength = 150;
-        public static readonly string[] ValidRoles = { "Admin", "DepartmentHead", "Employee" };
+
+        public static readonly string[] ValidRoles =
+        {
+            "Admin", "OrganizationHead", "DepartmentHead", "Employee"
+        };
 
         private User() { }
 
@@ -43,10 +46,11 @@ namespace BetterCRM.Core.Models
             DateTime? hireDate = null)
         {
             email = email.Trim().ToLower();
+
             if (string.IsNullOrWhiteSpace(email) || email.Length < MinEmailLength || email.Length > MaxEmailLength)
                 return (null, $"Некорректный email (от {MinEmailLength} до {MaxEmailLength} символов)");
 
-            if (!email.Contains("@") || !email.Contains("."))
+            if (!email.Contains('@') || !email.Contains('.'))
                 return (null, "Некорректный формат email");
 
             if (string.IsNullOrWhiteSpace(password) || password.Length < MinPasswordLength)
@@ -59,14 +63,12 @@ namespace BetterCRM.Core.Models
             if (!ValidRoles.Contains(role))
                 return (null, $"Недопустимая роль. Доступные: {string.Join(", ", ValidRoles)}");
 
-            var passwordHash = HashPassword(password);
-
             return (new User
             {
                 Id = Guid.NewGuid(),
                 OrganizationId = organizationId,
                 Email = email,
-                PasswordHash = passwordHash,
+                PasswordHash = HashPassword(password),
                 FullName = fullName,
                 Role = role,
                 PositionId = positionId,
@@ -75,18 +77,12 @@ namespace BetterCRM.Core.Models
                 IsActive = true
             }, null);
         }
-        internal static string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            var bytes = Encoding.UTF8.GetBytes(password + "CourseProjectSalt2026");
-            var hash = sha256.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
-        }
 
-        public bool VerifyPassword(string password)
-        {
-            return PasswordHash == HashPassword(password);
-        }
+        internal static string HashPassword(string password) =>
+            BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
+
+        public bool VerifyPassword(string password) =>
+            BCrypt.Net.BCrypt.Verify(password, PasswordHash);
 
         public void Activate() { IsActive = true; MarkAsUpdated(); }
         public void Deactivate() { IsActive = false; MarkAsUpdated(); }

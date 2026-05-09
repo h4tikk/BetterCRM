@@ -8,6 +8,5 @@
     {
         Task<AuthResult?> LoginAsync(LoginCommand command);
         Task<CurrentUserInfo> RegisterAsync(RegisterCommand command);
-        Task<CurrentUserInfo?> ValidateTokenAsync(string token);
     }
 }

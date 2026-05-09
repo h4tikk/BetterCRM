@@ -20,8 +20,6 @@ namespace BetterCRM.DataAccess.Repositories
             return (await q.OrderBy(s => s.Date).ToListAsync()).Select(MapToDomain).ToList();
         }
 
-        // ✅ ИЗМЕНЕНО: было (Guid departmentId, DateTime date) — один день
-        // Теперь принимает диапазон дат
         public async Task<List<Shift>> GetByDepartmentAsync(Guid departmentId, DateTime from, DateTime to)
         {
             var userIds = await _context.Users
@@ -35,8 +33,6 @@ namespace BetterCRM.DataAccess.Repositories
                 .ToListAsync()).Select(MapToDomain).ToList();
         }
 
-        // ✅ НОВОЕ: расписание всей организации за период (для OrganizationHead / Admin)
-        // Global query filter по OrganizationId уже применён в DbContext
         public async Task<List<Shift>> GetForOrganizationAsync(DateTime from, DateTime to)
         {
             return (await _dbSet

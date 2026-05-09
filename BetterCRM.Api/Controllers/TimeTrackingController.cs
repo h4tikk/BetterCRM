@@ -14,10 +14,6 @@ namespace BetterCRM.Api.Controllers
         public TimeTrackingController(ITimeTrackingService tracking, ICurrentUserProvider up)
             : base(up) => _tracking = tracking;
 
-        /// <summary>
-        /// Начать рабочую сессию.
-        /// Требует наличия смены на сегодня — иначе 409 Conflict.
-        /// </summary>
         [HttpPost("start")]
         public async Task<IActionResult> Start()
         {
@@ -25,7 +21,6 @@ namespace BetterCRM.Api.Controllers
             return CreatedAtAction(nameof(GetActive), session);
         }
 
-        /// <summary>Завершить активную рабочую сессию</summary>
         [HttpPost("stop")]
         public async Task<IActionResult> Stop([FromBody] StopSessionRequest req)
         {
@@ -33,7 +28,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(new { hoursWorked = hours });
         }
 
-        /// <summary>Текущая активная сессия (null если нет)</summary>
         [HttpGet("active")]
         public async Task<IActionResult> GetActive()
         {
@@ -42,7 +36,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(new { active = true, session });
         }
 
-        /// <summary>История сессий текущего пользователя</summary>
         [HttpGet("sessions")]
         public async Task<IActionResult> GetSessions(
             [FromQuery] DateTime? from, [FromQuery] DateTime? to)
@@ -51,7 +44,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(sessions);
         }
 
-        /// <summary>Статистика часов</summary>
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
@@ -62,10 +54,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(new { today, week, month });
         }
 
-        /// <summary>
-        /// Текущий заработок за неделю.
-        /// Показывает: отработано часов, ставку, брутто, штрафные часы, чистый заработок.
-        /// </summary>
         [HttpGet("earnings/week")]
         public async Task<IActionResult> GetWeekEarnings()
         {
@@ -73,7 +61,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(earnings);
         }
 
-        /// <summary>Часы по дням за период</summary>
         [HttpGet("hours-by-day")]
         public async Task<IActionResult> GetHoursByDay(
             [FromQuery] DateTime from, [FromQuery] DateTime to)

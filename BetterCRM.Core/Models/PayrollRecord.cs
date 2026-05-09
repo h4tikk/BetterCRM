@@ -11,17 +11,14 @@ namespace BetterCRM.Core.Models
         public decimal ScheduledHours { get; internal set; }
         public decimal ActualHours { get; internal set; }
 
-        // ✅ ИЗМЕНЕНО: один PenaltyHours → три поля
-        public decimal AttendancePenaltyHours { get; internal set; }  // опоздания / ранний уход
-        public decimal TicketPenaltyHours { get; internal set; }       // просроченные тикеты
-        public decimal TotalPenaltyHours { get; internal set; }        // сумма двух штрафов
+        public decimal AttendancePenaltyHours { get; internal set; }  
+        public decimal TicketPenaltyHours { get; internal set; }       
+        public decimal TotalPenaltyHours { get; internal set; }    
 
-        // ✅ ИЗМЕНЕНО: BillableHours → FinalBillableHours (название точнее)
-        public decimal FinalBillableHours { get; internal set; }       // ActualHours - TotalPenaltyHours
+        public decimal FinalBillableHours { get; internal set; }    
         public decimal HourlyRate { get; internal set; }
         public decimal CalculatedSalary { get; internal set; }
 
-        // ✅ ИЗМЕНЕНО: string → enum
         public PayrollStatus Status { get; internal set; } = PayrollStatus.Calculated;
 
         public User User { get; internal set; } = null!;
@@ -66,7 +63,6 @@ namespace BetterCRM.Core.Models
             }, null);
         }
 
-        // ✅ ИЗМЕНЕНО: валидация через enum, защита от некорректных переходов
         public void ChangeStatus(PayrollStatus newStatus)
         {
             var validTransitions = new Dictionary<PayrollStatus, PayrollStatus[]>
@@ -84,7 +80,6 @@ namespace BetterCRM.Core.Models
             MarkAsUpdated();
         }
 
-        // Перегрузка для совместимости с вызовами через строку (контроллеры, сервисы)
         public void ChangeStatus(string newStatus)
         {
             if (!Enum.TryParse<PayrollStatus>(newStatus, ignoreCase: true, out var parsed))

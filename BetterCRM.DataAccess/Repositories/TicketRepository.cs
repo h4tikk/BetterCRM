@@ -15,14 +15,13 @@ namespace BetterCRM.DataAccess.Repositories
         private IQueryable<TicketEntity> BaseQuery =>
             _dbSet.Include(t => t.Creator).Include(t => t.Assignee).Include(t => t.Participants);
 
-        // ✅ ПОЛНОСТЬЮ ПЕРЕПИСАН: корректная фильтрация по всем ролям
         public async Task<List<Ticket>> GetForUsersAsync(Guid userId, string role, Guid? departmentId)
         {
             IQueryable<TicketEntity> q = BaseQuery;
 
             if (role == "Admin" || role == "OrganizationHead")
             {
-                // Видят все тикеты организации (global query filter уже применён)
+               
             }
             else if (role == "DepartmentHead" && departmentId.HasValue)
             {
@@ -36,9 +35,8 @@ namespace BetterCRM.DataAccess.Repositories
                     deptUserIds.Contains(t.CreatorId) ||
                     (t.AssigneeId.HasValue && deptUserIds.Contains(t.AssigneeId.Value)));
             }
-            else // Employee
+            else
             {
-                // Тикеты где пользователь — участник
                 var participatingIds = await _context.TicketParticipants
                     .Where(tp => tp.UserId == userId)
                     .Select(tp => tp.TicketId)
@@ -49,7 +47,7 @@ namespace BetterCRM.DataAccess.Repositories
                     t.AssigneeId == userId ||
                     participatingIds.Contains(t.Id));
 
-                // Employee не видит чужие черновики
+
                 q = q.Where(t => !(t.Status == "Draft" && t.CreatorId != userId));
             }
 
@@ -57,8 +55,6 @@ namespace BetterCRM.DataAccess.Repositories
                 .Select(MapToDomain).ToList();
         }
 
-        // ✅ НОВОЕ: тикеты с истёкшим SLA, у которых штраф ещё не начислен
-        // Используется фоновым джобом для начисления OverduePenaltyHours
         public async Task<List<Ticket>> GetOverdueWithoutPenaltyAsync()
         {
             var now = DateTime.UtcNow;
@@ -69,13 +65,11 @@ namespace BetterCRM.DataAccess.Repositories
                     t.OverduePenaltyHours == 0)
                 .ToListAsync();
 
-            // Финальная проверка в памяти (SLATargetHours — decimal, сложно сравнивать с TimeSpan в SQL)
             return candidates
                 .Where(t => (now - t.CreatedAt).TotalHours > (double)t.SLATargetHours)
                 .Select(MapToDomain).ToList();
         }
 
-        // Оставлен для обратной совместимости — возвращает уже просроченные тикеты
         public async Task<List<Ticket>> GetOverdueAsync()
         {
             var list = await BaseQuery
@@ -110,8 +104,6 @@ namespace BetterCRM.DataAccess.Repositories
             return await q.GroupBy(t => t.Status).ToDictionaryAsync(g => g.Key, g => g.Count());
         }
 
-        // ✅ НОВОЕ: суммарный штраф за просроченные тикеты пользователя за период
-        // Используется в PayrollService при расчёте зарплаты
         public async Task<decimal> GetTicketPenaltyHoursAsync(Guid userId, DateTime from, DateTime to) =>
             await _dbSet
                 .Where(t =>

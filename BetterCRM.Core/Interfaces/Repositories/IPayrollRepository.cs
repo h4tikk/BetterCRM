@@ -8,5 +8,6 @@ namespace BetterCRM.Core.Interfaces.Repositories
         Task<List<PayrollRecord>> GetByDepartmentAsync(Guid departmentId, int year, int month);
         Task UpdateStatusAsync(Guid recordId, string status);
         Task<decimal> GetTicketPenaltyHoursAsync(Guid userId, DateTime from, DateTime to);
+        Task UpsertAsync(PayrollRecord record);
     }
 }

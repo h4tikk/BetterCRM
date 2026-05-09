@@ -36,7 +36,6 @@ namespace BetterCRM.Business.Services
             if (await _sessionRepo.GetActiveSessionAsync(command.UserId) != null)
                 throw new ConflictException("Активная сессия уже существует");
 
-            // Привязываем к смене на сегодня если есть
             var todayShift = await _shiftRepo.GetByUserAndDateAsync(command.UserId, DateTime.UtcNow.Date);
 
             var (session, err) = WorkSession.Start(user.OrganizationId, command.UserId, todayShift?.Id);
@@ -45,7 +44,6 @@ namespace BetterCRM.Business.Services
             return await _sessionRepo.AddAsync(session);
         }
 
-        // ✅ Возвращает decimal (DurationHours) как в интерфейсе
         public async Task<decimal> StopSessionAsync(StopSessionCommand command)
         {
             var session = await _sessionRepo.GetActiveSessionAsync(command.UserId)
@@ -54,7 +52,6 @@ namespace BetterCRM.Business.Services
             var (ok, err) = session.Stop(command.Description);
             if (!ok) throw new DomainException(err!);
 
-            // Начисляем штраф посещаемости и завершаем смену
             if (session.ShiftId.HasValue)
             {
                 var shift = await _shiftRepo.GetByIdAsync(session.ShiftId.Value);
@@ -107,7 +104,6 @@ namespace BetterCRM.Business.Services
         public async Task<decimal> GetTotalHoursByTicketAsync(Guid ticketId) =>
             await _timeLogRepo.GetTotalHoursByTicketAsync(ticketId);
 
-        // ✅ Возвращает WeekEarningsDto строго по полям из интерфейса
         public async Task<WeekEarningsDto> GetWeekEarningsAsync(Guid userId)
         {
             var (weekStart, weekEnd) = GetCurrentWeekRange();
@@ -120,33 +116,23 @@ namespace BetterCRM.Business.Services
             var ticketPenalty = await _payrollRepo.GetTicketPenaltyHoursAsync(userId, weekStart, weekEnd);
             var penaltyHours = attendancePenalty + ticketPenalty;
             var rate = user.Position.HourlyRate;
-
-            // BillableHours — сколько часов идёт в оплату (не больше фактических)
             var billableHours = Math.Max(0, workedHours - penaltyHours);
-
-            // CurrentEarnings — до вычета штрафов
-            var currentEarnings = Math.Round(workedHours * rate, 2);
-
-            // EstimatedNet — с учётом штрафов
-            var estimatedNet = Math.Round(billableHours * rate, 2);
 
             return new WeekEarningsDto(
                 WorkedHours: workedHours,
                 BillableHours: billableHours,
                 HourlyRate: rate,
-                CurrentEarnings: currentEarnings,
+                CurrentEarnings: Math.Round(workedHours * rate, 2),
                 PenaltyHours: penaltyHours,
-                EstimatedNet: estimatedNet
+                EstimatedNet: Math.Round(billableHours * rate, 2)
             );
         }
-
-        // ── Вспомогательные методы ────────────────────────────────────────────
 
         private static (DateTime start, DateTime end) GetCurrentWeekRange()
         {
             var today = DateTime.UtcNow.Date;
-            // Неделя с понедельника
-            var start = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+            var daysFromMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+            var start = today.AddDays(-daysFromMonday);
             return (start, start.AddDays(7));
         }
 

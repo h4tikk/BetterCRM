@@ -19,10 +19,6 @@ namespace BetterCRM.Api.Controllers
         public TicketsController(ITicketService tickets, ICurrentUserProvider up)
             : base(up) => _tickets = tickets;
 
-        /// <summary>
-        /// Создать тикет (любой авторизованный пользователь).
-        /// Тикет создаётся в статусе Draft — требует подтверждения DepartmentHead.
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTicketRequest req)
         {
@@ -32,7 +28,6 @@ namespace BetterCRM.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = ticket.Id }, ticket);
         }
 
-        /// <summary>Получить тикет по ID</summary>
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -41,12 +36,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(ticket);
         }
 
-        /// <summary>
-        /// Список тикетов с учётом роли:
-        /// - Employee: свои (созданные + назначенные + участник), без чужих Draft
-        /// - DepartmentHead: все тикеты своего отдела (включая Draft)
-        /// - OrganizationHead/Admin: все тикеты организации
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -54,10 +43,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(tickets);
         }
 
-        /// <summary>
-        /// Подтвердить тикет (Draft → Open).
-        /// Только DepartmentHead своего отдела или Admin.
-        /// </summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpPost("{id:guid}/approve")]
         public async Task<IActionResult> Approve(Guid id)
@@ -66,10 +51,6 @@ namespace BetterCRM.Api.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Отклонить тикет (Draft → Closed).
-        /// Только DepartmentHead своего отдела или Admin.
-        /// </summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpPost("{id:guid}/reject")]
         public async Task<IActionResult> Reject(Guid id)
@@ -78,7 +59,6 @@ namespace BetterCRM.Api.Controllers
             return NoContent();
         }
 
-        /// <summary>Пометить тикет как решённый (исполнитель или участник)</summary>
         [HttpPost("{id:guid}/resolve")]
         public async Task<IActionResult> Resolve(Guid id)
         {
@@ -86,7 +66,6 @@ namespace BetterCRM.Api.Controllers
             return NoContent();
         }
 
-        /// <summary>Закрыть тикет (только DepartmentHead или Admin)</summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpPost("{id:guid}/close")]
         public async Task<IActionResult> Close(Guid id)
@@ -95,7 +74,6 @@ namespace BetterCRM.Api.Controllers
             return NoContent();
         }
 
-        /// <summary>Список участников тикета</summary>
         [HttpGet("{id:guid}/participants")]
         public async Task<IActionResult> GetParticipants(Guid id)
         {
@@ -103,10 +81,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(list);
         }
 
-        /// <summary>
-        /// Добавить участника в тикет.
-        /// Только DepartmentHead своего отдела или Admin.
-        /// </summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpPost("{id:guid}/participants")]
         public async Task<IActionResult> AddParticipant(
@@ -116,10 +90,6 @@ namespace BetterCRM.Api.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Удалить участника из тикета.
-        /// Только DepartmentHead своего отдела или Admin.
-        /// </summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpDelete("{id:guid}/participants/{userId:guid}")]
         public async Task<IActionResult> RemoveParticipant(Guid id, Guid userId)

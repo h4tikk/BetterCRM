@@ -16,17 +16,14 @@ namespace BetterCRM.Api.Controllers
         private readonly IAuthService _auth;
         public AuthController(IAuthService auth) => _auth = auth;
 
-        /// <summary>Вход в систему</summary>
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
-        {
+        { 
             var result = await _auth.LoginAsync(new LoginCommand(req.Email, req.Password));
-            if (result == null) return Unauthorized(new { error = "Неверный email или пароль" });
             return Ok(result);
         }
 
-        /// <summary>Регистрация нового пользователя (только Admin)</summary>
         [Authorize(Roles = "Admin")]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest req)
@@ -37,7 +34,6 @@ namespace BetterCRM.Api.Controllers
             return CreatedAtAction(null, user);
         }
 
-        /// <summary>Текущий авторизованный пользователь</summary>
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> Me([FromServices] ICurrentUserProvider up)

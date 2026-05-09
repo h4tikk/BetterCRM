@@ -16,12 +16,7 @@ namespace BetterCRM.Api.Controllers
         public ShiftsController(IShiftService shifts, ICurrentUserProvider up)
             : base(up) => _shifts = shifts;
 
-        /// <summary>
-        /// Создать смену сотруднику.
-        /// DepartmentHead — только своему отделу (Employee).
-        /// OrganizationHead — любому в своей организации (включая DepartmentHead).
-        /// Admin — всем без ограничений.
-        /// </summary>
+
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateShiftRequest req)
@@ -32,7 +27,6 @@ namespace BetterCRM.Api.Controllers
             return CreatedAtAction(nameof(GetForUser), new { userId = req.UserId }, shift);
         }
 
-        /// <summary>Смена текущего пользователя на сегодня (для кнопки «Начать смену»)</summary>
         [HttpGet("today")]
         public async Task<IActionResult> GetToday()
         {
@@ -41,14 +35,12 @@ namespace BetterCRM.Api.Controllers
             return Ok(new { hasShift = true, shift });
         }
 
-        /// <summary>Смены конкретного пользователя за период</summary>
         [HttpGet("user/{userId:guid}")]
         public async Task<IActionResult> GetForUser(
             Guid userId,
             [FromQuery] DateTime from,
             [FromQuery] DateTime to)
         {
-            // Employee может смотреть только свои смены
             if (UserRole == "Employee" && userId != UserId)
                 return Forbid();
 
@@ -56,10 +48,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(shifts);
         }
 
-        /// <summary>
-        /// Смены отдела за период.
-        /// DepartmentHead — только своего отдела.
-        /// </summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpGet("department/{departmentId:guid}")]
         public async Task<IActionResult> GetForDepartment(
@@ -74,9 +62,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(shifts);
         }
 
-        /// <summary>
-        /// Расписание всей организации (только OrganizationHead и Admin).
-        /// </summary>
         [Authorize(Roles = "Admin,OrganizationHead")]
         [HttpGet("organization")]
         public async Task<IActionResult> GetForOrganization(
@@ -87,7 +72,6 @@ namespace BetterCRM.Api.Controllers
             return Ok(shifts);
         }
 
-        /// <summary>Обновить/отменить смену</summary>
         [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
         [HttpPatch("{shiftId:guid}")]
         public async Task<IActionResult> Update(

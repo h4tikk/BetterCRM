@@ -19,13 +19,11 @@ namespace BetterCRM.Core.Models
 
         public DateTime? ResolvedAt { get; internal set; }
 
-        // ✅ НОВОЕ: момент полного закрытия
         public DateTime? ClosedAt { get; internal set; }
 
         public decimal SLATargetHours { get; internal set; }
         public bool IsSLABreached { get; internal set; }
 
-        // ✅ НОВОЕ: штрафные часы за просрочку SLA
         public decimal OverduePenaltyHours { get; internal set; } = 0;
 
         public User Creator { get; internal set; } = null!;
@@ -44,7 +42,6 @@ namespace BetterCRM.Core.Models
             [TicketPriority.Low] = 24
         };
 
-        // Штраф в часах при просрочке SLA (зависит от приоритета)
         public static readonly Dictionary<TicketPriority, decimal> OverduePenalties = new()
         {
             [TicketPriority.High] = 2,
@@ -54,8 +51,6 @@ namespace BetterCRM.Core.Models
 
         private Ticket() { }
 
-        // ✅ ИЗМЕНЕНО: priority теперь enum, добавлен departmentId
-        // ✅ ИЗМЕНЕНО: начальный статус Draft (не Open)
         public static (Ticket? ticket, string? error) Create(
             Guid organizationId, string title, string? description,
             TicketPriority priority, Guid creatorId,
@@ -89,7 +84,6 @@ namespace BetterCRM.Core.Models
             }, null);
         }
 
-        // ✅ НОВОЕ: Draft → Open (одобрение руководителем)
         public void Approve()
         {
             if (Status != TicketStatus.Draft)
@@ -98,7 +92,6 @@ namespace BetterCRM.Core.Models
             MarkAsUpdated();
         }
 
-        // ✅ НОВОЕ: отклонить черновик
         public void Reject()
         {
             if (Status != TicketStatus.Draft)

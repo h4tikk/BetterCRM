@@ -1,4 +1,5 @@
 using BetterCRM.Api.Middleware;
+using BetterCRM.Business.Helpers;
 using BetterCRM.Business.Services;
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
@@ -7,6 +8,7 @@ using BetterCRM.DataAccess.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +34,8 @@ builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ITimeTrackingService, TimeTrackingService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
+
+builder.Services.AddSingleton<JwtHelper>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key не задан в конфигурации");
@@ -64,11 +68,14 @@ builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
     .AllowAnyHeader()
     .AllowCredentials()));
 
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
+
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -83,14 +90,19 @@ if (app.Environment.IsDevelopment())
     }
 
     app.MapOpenApi();
+    app.MapScalarApiReference(opt =>
+    {
+        opt.Title = "BetterCRM API";
+        opt.Theme = ScalarTheme.Moon;
+    });
 }
 
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowFrontend");      
 app.UseAuthentication();
 app.UseAuthorization();
-
-
 app.UseOrganizationContext();
 
 app.MapControllers();

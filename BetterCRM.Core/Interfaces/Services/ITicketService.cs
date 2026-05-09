@@ -3,7 +3,6 @@ using BetterCRM.Core.Models;
 
 namespace BetterCRM.Core.Interfaces.Services
 {
-    // DepartmentId добавлен — тикет привязывается к отделу создателя
     public record CreateTicketCommand(
         string Title, string? Description, TicketPriority Priority,
         Guid CreatorId, Guid? DepartmentId, Guid? AssigneeId);

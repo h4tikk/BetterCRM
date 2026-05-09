@@ -8,7 +8,6 @@ namespace BetterCRM.Core.Interfaces.Repositories
         Task<List<Shift>> GetByDepartmentAsync(Guid departmentId, DateTime from, DateTime to);
         Task<Shift?> GetByUserAndDateAsync(Guid userId, DateTime date);
         Task<decimal> GetTotalScheduledHoursAsync(Guid userId, DateTime from, DateTime to);
-        // Суммарные штрафные часы из смен пользователя за период
         Task<decimal> GetTotalAttendancePenaltyAsync(Guid userId, DateTime from, DateTime to);
         Task<List<Shift>> GetForOrganizationAsync(DateTime from, DateTime to);
     }

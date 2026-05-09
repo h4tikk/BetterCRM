@@ -10,10 +10,8 @@ namespace BetterCRM.Core.Models
         public TimeSpan StartTime { get; internal set; }
         public TimeSpan EndTime { get; internal set; }
 
-        // ✅ ИЗМЕНЕНО: string → enum
         public ShiftStatus Status { get; internal set; } = ShiftStatus.Scheduled;
 
-        // ✅ НОВОЕ: штрафные часы за посещаемость
         public decimal LatenessPenaltyHours { get; internal set; } = 0;
         public decimal EarlyLeavePenaltyHours { get; internal set; } = 0;
 
@@ -51,7 +49,6 @@ namespace BetterCRM.Core.Models
             MarkAsUpdated();
         }
 
-        // ✅ ИСПРАВЛЕНО: было "Complete" — опечатка, должно быть "Completed"
         public void Complete()
         {
             if (Status == ShiftStatus.Cancelled)
@@ -68,7 +65,6 @@ namespace BetterCRM.Core.Models
                 throw new InvalidOperationException("Изменить время можно только у запланированной смены");
             StartTime = start;
             EndTime = end;
-            // ✅ ИСПРАВЛЕНО: MarkAsUpdated() отсутствовал в оригинале
             MarkAsUpdated();
         }
 

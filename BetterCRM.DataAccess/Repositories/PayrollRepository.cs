@@ -66,5 +66,30 @@ namespace BetterCRM.DataAccess.Repositories
 
             await _context.SaveChangesAsync(); ;
         }
+
+        public async Task UpsertAsync(PayrollRecord record)
+        {
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existing = await _dbSet.FirstOrDefaultAsync(p =>
+                    p.UserId == record.UserId &&
+                    p.PeriodStart == record.PeriodStart.Date);
+
+                if (existing != null)
+                    _dbSet.Remove(existing);
+
+                var entity = MapToDb(record);
+                await _dbSet.AddAsync(entity);
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+
+        }
     }
 }

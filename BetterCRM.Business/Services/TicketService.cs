@@ -46,8 +46,6 @@ namespace BetterCRM.Business.Services
         public async Task<List<Ticket>> GetFilteredAsync(Guid userId, string role, Guid? departmentId) =>
             await _ticketRepo.GetForUsersAsync(userId, role, departmentId);
 
-        // Draft → Open
-        // approverId передаётся для будущего audit log
         public async Task ApproveAsync(Guid ticketId, Guid approverId)
         {
             var approver = await _userRepo.GetByIdAsync(approverId)
@@ -63,7 +61,6 @@ namespace BetterCRM.Business.Services
             await _ticketRepo.UpdateAsync(ticket);
         }
 
-        // Draft → Closed
         public async Task RejectAsync(Guid ticketId, Guid rejecterId)
         {
             var rejecter = await _userRepo.GetByIdAsync(rejecterId)
@@ -79,8 +76,6 @@ namespace BetterCRM.Business.Services
             await _ticketRepo.UpdateAsync(ticket);
         }
 
-        // InProgress → Resolved
-        // resolverId — должен быть assignee или участник тикета
         public async Task ResolveAsync(Guid ticketId, Guid resolverId)
         {
             var ticket = await _ticketRepo.GetByIdAsync(ticketId)
@@ -99,8 +94,6 @@ namespace BetterCRM.Business.Services
             await _ticketRepo.UpdateAsync(ticket);
         }
 
-        // Resolved → Closed
-        // closerId — только менеджер или создатель
         public async Task CloseAsync(Guid ticketId, Guid closerId)
         {
             var ticket = await _ticketRepo.GetByIdAsync(ticketId)
@@ -118,7 +111,6 @@ namespace BetterCRM.Business.Services
             await _ticketRepo.UpdateAsync(ticket);
         }
 
-        // Добавление участника — может делать assignee или менеджер
         public async Task AddParticipantAsync(Guid ticketId, Guid userId, string role, Guid requesterId)
         {
             var ticket = await _ticketRepo.GetByIdAsync(ticketId)
@@ -142,7 +134,6 @@ namespace BetterCRM.Business.Services
             await _participantRepo.AddAsync(p);
         }
 
-        // Удаление участника — может сам участник, assignee или менеджер
         public async Task RemoveParticipantAsync(Guid ticketId, Guid userId, Guid requesterId)
         {
             var ticket = await _ticketRepo.GetByIdAsync(ticketId)
@@ -164,12 +155,8 @@ namespace BetterCRM.Business.Services
         public async Task<List<TicketParticipant>> GetParticipantsAsync(Guid ticketId) =>
             await _participantRepo.GetByTicketAsync(ticketId);
 
-        // Запускается фоновым сервисом (Hangfire / BackgroundService)
-        // Проверяет SLA и начисляет штраф через ApplyOverduePenalty()
         public async Task<int> CheckAndMarkOverdueAsync()
         {
-            // ✅ GetOverdueAsync — тикеты у которых SLA истёк но штраф ещё не начислен
-            // Нужно добавить этот метод в ITicketRepository (см. ниже)
             var overdue = await _ticketRepo.GetOverdueAsync();
             foreach (var t in overdue)
             {

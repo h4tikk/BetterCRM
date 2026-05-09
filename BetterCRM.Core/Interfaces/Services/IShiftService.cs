@@ -8,9 +8,7 @@ namespace BetterCRM.Core.Interfaces.Services
 
     public interface IShiftService
     {
-        // Только DepartmentHead может создавать смены своего отдела
         Task<Shift> CreateAsync(CreateShiftCommand cmd, Guid creatorId, string creatorRole, Guid? creatorDeptId);
-        // Получить смену пользователя на сегодня (для кнопки "Начать смену")
         Task<Shift?> GetTodayShiftAsync(Guid userId);
         Task<List<Shift>> GetForUserAsync(Guid userId, DateTime from, DateTime to);
         Task<List<Shift>> GetForDepartmentAsync(Guid departmentId, DateTime from, DateTime to);

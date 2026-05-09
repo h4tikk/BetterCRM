@@ -29,8 +29,6 @@ namespace BetterCRM.DataAccess.Repositories
                 .Where(tl => tl.TicketId == ticketId)
                 .SumAsync(tl => tl.DurationHours);
 
-        // ✅ НОВОЕ: штрафные часы за просроченные тикеты пользователя за период
-        // Используется в TimeTrackingService.GetWeekEarningsAsync
         public async Task<decimal> GetTicketPenaltyHoursAsync(Guid userId, DateTime from, DateTime to) =>
             await _context.Tickets
                 .Where(t =>
