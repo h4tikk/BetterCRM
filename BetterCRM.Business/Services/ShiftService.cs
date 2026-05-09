@@ -37,8 +37,8 @@ namespace BetterCRM.Business.Services
         public async Task<List<Shift>> GetForDepartmentAsync(Guid departmentId, DateTime from, DateTime to) =>
             await _shiftRepo.GetByDepartmentAsync(departmentId, from, to);
 
-        public async Task<List<Shift>> GetForOrganizationAsync(DateTime from, DateTime to) =>
-            await _shiftRepo.GetForOrganizationAsync(from, to);
+        public async Task<List<Shift>> GetForOrganizationAsync(Guid orgId, DateTime from, DateTime to) =>
+            await _shiftRepo.GetForOrganizationAsync(orgId, from, to);
 
         public async Task<List<Shift>> GetForUserAsync(Guid userId, DateTime from, DateTime to) =>
             await _shiftRepo.GetByUserAsync(userId, from, to);

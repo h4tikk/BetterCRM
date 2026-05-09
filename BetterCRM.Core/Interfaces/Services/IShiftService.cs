@@ -13,6 +13,6 @@ namespace BetterCRM.Core.Interfaces.Services
         Task<List<Shift>> GetForUserAsync(Guid userId, DateTime from, DateTime to);
         Task<List<Shift>> GetForDepartmentAsync(Guid departmentId, DateTime from, DateTime to);
         Task UpdateAsync(Guid shiftId, UpdateShiftCommand cmd, Guid updaterId, string updaterRole, Guid? updaterDeptId);
-        Task<List<Shift>> GetForOrganizationAsync(DateTime from, DateTime to);
+        Task<List<Shift>> GetForOrganizationAsync(Guid orgId, DateTime from, DateTime to);
     }
 }

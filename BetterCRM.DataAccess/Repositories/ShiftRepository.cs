@@ -33,7 +33,7 @@ namespace BetterCRM.DataAccess.Repositories
                 .ToListAsync()).Select(MapToDomain).ToList();
         }
 
-        public async Task<List<Shift>> GetForOrganizationAsync(DateTime from, DateTime to)
+        public async Task<List<Shift>> GetForOrganizationAsync(Guid orgId, DateTime from, DateTime to)
         {
             return (await _dbSet
                 .Include(s => s.User)

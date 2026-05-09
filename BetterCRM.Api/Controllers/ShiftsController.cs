@@ -63,12 +63,13 @@ namespace BetterCRM.Api.Controllers
         }
 
         [Authorize(Roles = "Admin,OrganizationHead")]
-        [HttpGet("organization")]
+        [HttpGet("organization/{orgId:guid}")]
         public async Task<IActionResult> GetForOrganization(
+            Guid orgId,
             [FromQuery] DateTime from,
             [FromQuery] DateTime to)
         {
-            var shifts = await _shifts.GetForOrganizationAsync(from, to);
+            var shifts = await _shifts.GetForOrganizationAsync(orgId, from, to);
             return Ok(shifts);
         }
 
