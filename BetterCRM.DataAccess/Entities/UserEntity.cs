@@ -12,6 +12,7 @@
         public PositionEntity Position { get; set; } = null!;
         public DateTime HireDate { get; set; }
         public bool IsActive { get; set; } = true;
+        public string? AvatarObjectName { get; set; }
 
         public ICollection<TicketEntity> CreatedTickets { get; set; } = new List<TicketEntity>();
         public ICollection<TicketEntity> AssignedTickets { get; set; } = new List<TicketEntity>();

@@ -1,6 +1,4 @@
-﻿using BCrypt.Net;
-
-namespace BetterCRM.Core.Models
+﻿namespace BetterCRM.Core.Models
 {
     public class User : TenantEntity
     {
@@ -12,6 +10,7 @@ namespace BetterCRM.Core.Models
         public Guid PositionId { get; internal set; }
         public DateTime HireDate { get; internal set; }
         public bool IsActive { get; internal set; } = true;
+        public string? AvatarObjectName { get; internal set; }
 
         public Department? Department { get; internal set; }
         public Position Position { get; internal set; } = null!;

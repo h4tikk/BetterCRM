@@ -19,12 +19,13 @@ namespace BetterCRM.DataAccess
         public DbSet<TicketEntity> Tickets => Set<TicketEntity>();
         public DbSet<TicketParticipantEntity> TicketParticipants => Set<TicketParticipantEntity>();
         public DbSet<PayrollRecordEntity> PayrollRecords => Set<PayrollRecordEntity>();
+        public DbSet<ChatMessageEntity> ChatMessages => Set<ChatMessageEntity>();
+        public DbSet<NotificationEntity> Notifications => Set<NotificationEntity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-            // 🔒 Глобальный фильтр мультитенантности (применяется к Db-сущностям)
             var tenantType = typeof(TenantDbEntity);
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {

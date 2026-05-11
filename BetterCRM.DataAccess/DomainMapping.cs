@@ -6,7 +6,6 @@ namespace BetterCRM.DataAccess
 {
     public static class DomainMapper
     {
-        // ── Organization ──────────────────────────────────────────────────────
         public static Organization ToOrganizationDomain(OrganizationEntity db)
         {
             var result = Organization.Create(db.Name);
@@ -26,7 +25,6 @@ namespace BetterCRM.DataAccess
             return db;
         }
 
-        // ── Department ────────────────────────────────────────────────────────
         public static Department ToDepartmentDomain(DepartmentEntity db)
         {
             var result = Department.Create(db.OrganizationId, db.Name);
@@ -44,7 +42,6 @@ namespace BetterCRM.DataAccess
             return db;
         }
 
-        // ── Position ──────────────────────────────────────────────────────────
         public static Position ToPositionDomain(PositionEntity db)
         {
             var result = Position.Create(db.OrganizationId, db.Title, db.HourlyRate, db.DailyNormHours);
@@ -63,7 +60,6 @@ namespace BetterCRM.DataAccess
             return db;
         }
 
-        // ── User ──────────────────────────────────────────────────────────────
         public static User ToUserDomain(UserEntity db)
         {
             var result = User.Create(db.OrganizationId, db.Email, "MAPPED_HASH",
@@ -71,7 +67,6 @@ namespace BetterCRM.DataAccess
             if (result.error != null) throw new InvalidOperationException($"DB Data Corrupted: {result.error}");
             var d = result.user!;
             d.Id = db.Id;
-            // ✅ ИСПРАВЛЕНО: восстанавливаем реальный хэш, а не "MAPPED_HASH"
             d.PasswordHash = db.PasswordHash;
             d.IsActive = db.IsActive;
             d.CreatedAt = db.CreatedAt; d.UpdatedAt = db.UpdatedAt;
@@ -112,7 +107,6 @@ namespace BetterCRM.DataAccess
             return db;
         }
 
-        // ── WorkSession ───────────────────────────────────────────────────────
         public static WorkSession ToWorkSessionDomain(WorkSessionEntity db)
         {
             var result = WorkSession.Start(db.OrganizationId, db.UserId, db.ShiftId);
@@ -133,7 +127,6 @@ namespace BetterCRM.DataAccess
             return db;
         }
 
-        // ── TimeLog ───────────────────────────────────────────────────────────
         public static TimeLog ToTimeLogDomain(TimeLogEntity db)
         {
             var result = TimeLog.Create(db.OrganizationId, db.WorkSessionId, db.TicketId,
@@ -153,9 +146,6 @@ namespace BetterCRM.DataAccess
             return db;
         }
 
-        // ── Ticket ────────────────────────────────────────────────────────────
-        // ✅ ИЗМЕНЕНО: Priority и Status маппятся через Enum.Parse / ToString
-        // ✅ ИЗМЕНЕНО: добавлены DepartmentId, ClosedAt, OverduePenaltyHours
         public static Ticket ToTicketDomain(TicketEntity db)
         {
             var result = Ticket.Create(
@@ -191,7 +181,6 @@ namespace BetterCRM.DataAccess
             return db;
         }
 
-        // ── TicketParticipant ─────────────────────────────────────────────────
         public static TicketParticipant ToParticipantDomain(TicketParticipantEntity db)
         {
             var result = TicketParticipant.Create(db.OrganizationId, db.TicketId, db.UserId, db.Role);
@@ -251,6 +240,70 @@ namespace BetterCRM.DataAccess
             db.Status = d.Status.ToString();
             db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
             return db;
+        }
+        public static Notification ToNotificationDomain(NotificationEntity db) =>
+            Notification.Restore(
+                id: db.Id,
+                organizationId: db.OrganizationId,
+                userId: db.UserId,
+                ticketId: db.TicketId,
+                type: db.Type,
+                title: db.Title,
+                body: db.Body,
+                isRead: db.IsRead,
+                createdAt: db.CreatedAt
+            );
+
+        public static NotificationEntity ToNotificationDb(Notification domain, NotificationEntity? existing = null)
+        {
+            var entity = existing ?? new NotificationEntity();
+
+            entity.Id = domain.Id;
+            entity.OrganizationId = domain.OrganizationId;
+            entity.UserId = domain.UserId;
+            entity.TicketId = domain.TicketId;
+            entity.Type = domain.Type;
+            entity.Title = domain.Title;
+            entity.Body = domain.Body;
+            entity.IsRead = domain.IsRead;
+            entity.CreatedAt = domain.CreatedAt;
+
+            return entity;
+        }
+
+        public static ChatMessage ToChatMessageDomain(ChatMessageEntity db) =>
+            ChatMessage.Restore(
+                id: db.Id,
+                organizationId: db.OrganizationId,
+                senderId: db.SenderId,
+                senderName: db.Sender?.FullName ?? string.Empty,
+                senderAvatar: db.Sender?.AvatarObjectName != null
+                    ? $"http://localhost:9000/avatars/{db.Sender.AvatarObjectName}"
+                    : null,
+                recipientId: db.RecipientId,
+                recipientName: db.Recipient?.FullName,
+                chatRoomId: db.ChatRoomId,
+                text: db.Text,
+                sentAt: db.SentAt,
+                isRead: db.IsRead,
+                createdAt: db.CreatedAt
+            );
+
+        public static ChatMessageEntity ToChatMessageDb(ChatMessage domain, ChatMessageEntity? existing = null)
+        {
+            var entity = existing ?? new ChatMessageEntity();
+
+            entity.Id = domain.Id;
+            entity.OrganizationId = domain.OrganizationId;
+            entity.SenderId = domain.SenderId;
+            entity.RecipientId = domain.RecipientId;
+            entity.ChatRoomId = domain.ChatRoomId;
+            entity.Text = domain.Text;
+            entity.SentAt = domain.SentAt;
+            entity.IsRead = domain.IsRead;
+            entity.CreatedAt = domain.CreatedAt;
+
+            return entity;
         }
     }
 }
