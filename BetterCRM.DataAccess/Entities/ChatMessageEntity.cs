@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BetterCRM.DataAccess.Entities
+﻿namespace BetterCRM.DataAccess.Entities
 {
     public class ChatMessageEntity : TenantDbEntity
     {

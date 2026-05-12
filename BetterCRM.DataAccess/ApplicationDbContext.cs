@@ -21,6 +21,8 @@ namespace BetterCRM.DataAccess
         public DbSet<PayrollRecordEntity> PayrollRecords => Set<PayrollRecordEntity>();
         public DbSet<ChatMessageEntity> ChatMessages => Set<ChatMessageEntity>();
         public DbSet<NotificationEntity> Notifications => Set<NotificationEntity>();
+        public DbSet<TicketCommentEntity> TicketComments => Set<TicketCommentEntity>();
+        public DbSet<TicketAttachmentEntity> TicketAttachments => Set<TicketAttachmentEntity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

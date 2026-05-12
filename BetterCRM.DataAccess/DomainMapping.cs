@@ -305,5 +305,66 @@ namespace BetterCRM.DataAccess
 
             return entity;
         }
+
+        public static TicketComment ToTicketCommentDomain(TicketCommentEntity db, string minioBase) =>
+            TicketComment.Restore(
+                id: db.Id,
+                organizationId: db.OrganizationId,
+                ticketId: db.TicketId,
+                authorId: db.AuthorId,
+                authorName: db.Author?.FullName ?? string.Empty,
+                text: db.Text,
+                createdAt: db.CreatedAt,
+                updatedAt: db.UpdatedAt,
+                attachments: db.Attachments?
+                    .Select(a => ToTicketAttachmentDomain(a, minioBase))
+                    .ToList() ?? []
+            );
+
+        public static TicketAttachment ToTicketAttachmentDomain(TicketAttachmentEntity db, string minioBase) =>
+            TicketAttachment.Restore(
+                id: db.Id,
+                organizationId: db.OrganizationId,
+                ticketId: db.TicketId,
+                commentId: db.CommentId,
+                uploaderId: db.UploaderId,
+                fileName: db.FileName,
+                objectName: db.ObjectName,
+                contentType: db.ContentType,
+                sizeBytes: db.SizeBytes,
+                createdAt: db.CreatedAt,
+                url: $"{minioBase}/ticket-attachments/{db.ObjectName}"
+            );
+
+        public static TicketAttachmentEntity ToTicketAttachmentDb(TicketAttachment domain)
+        {
+            return new TicketAttachmentEntity
+            {
+                Id = domain.Id,
+                OrganizationId = domain.OrganizationId,
+                TicketId = domain.TicketId,
+                CommentId = domain.CommentId,
+                UploaderId = domain.UploaderId,
+                FileName = domain.FileName,
+                ObjectName = domain.ObjectName,
+                ContentType = domain.ContentType,
+                SizeBytes = domain.SizeBytes,
+                CreatedAt = domain.CreatedAt
+            };
+        }
+
+        public static TicketCommentEntity ToTicketCommentDb(TicketComment domain)
+        {
+            return new TicketCommentEntity
+            {
+                Id = domain.Id,
+                OrganizationId = domain.OrganizationId,
+                TicketId = domain.TicketId,
+                AuthorId = domain.AuthorId,
+                Text = domain.Text,
+                CreatedAt = domain.CreatedAt,
+                UpdatedAt = (DateTime)domain.UpdatedAt
+            };
+        }
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Minio;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -33,6 +34,7 @@ builder.Services.AddScoped<ITicketParticipantRepository, TicketParticipantReposi
 builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
 builder.Services.AddScoped<IChatRepository, ChatMessageRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<ITicketCommentRepository, TicketCommentRepository>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserProvider, CurrentUserProvider>();
@@ -41,6 +43,7 @@ builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ITimeTrackingService, TimeTrackingService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
+builder.Services.AddScoped<ITicketCommentService, TicketCommentService>();
 builder.Services.AddScoped<IChatNotifier, ChatNotifier>();
 builder.Services.AddScoped<ITicketNotifier, TicketNotifier>();
 
@@ -104,7 +107,16 @@ builder.Services.AddCors(opt =>
     });
 });
 
-
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    return new MinioClient()
+        .WithEndpoint(config["Minio:Endpoint"])
+        .WithCredentials(config["Minio:AccessKey"], config["Minio:SecretKey"])
+        .WithSSL(bool.Parse(config["Minio:UseSSL"] ?? "false"))
+        .Build();
+});
+builder.Services.AddScoped<IFileStorageService, MinioStorageService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

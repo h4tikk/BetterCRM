@@ -4,7 +4,7 @@ using BetterCRM.Core.Messages;
 using BetterCRM.Core.Models;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using System.Runtime.InteropServices;
+
 namespace BetterCRM.Business.Consumers
 {
     public class ChatMessageConsumer : IConsumer<ChatMessageEvent>

@@ -22,5 +22,7 @@
 
         public ICollection<TicketParticipantEntity> Participants { get; set; } = new List<TicketParticipantEntity>();
         public ICollection<TimeLogEntity> TimeLogs { get; set; } = new List<TimeLogEntity>();
+        public ICollection<TicketCommentEntity> Comments { get; set; } = new List<TicketCommentEntity>();
+        public ICollection<TicketAttachmentEntity> Attachments { get; set; } = new List<TicketAttachmentEntity>();
     }
 }

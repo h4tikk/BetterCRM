@@ -4,9 +4,6 @@ using BetterCRM.Core.Messages;
 using BetterCRM.Core.Models;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BetterCRM.Business.Consumers
 {
