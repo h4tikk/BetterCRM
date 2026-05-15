@@ -6,39 +6,60 @@ namespace BetterCRM.Api.Controllers
 {
     public record LoginRequest(string Email, string Password);
     public record RegisterRequest(
-        string Email, string Password, string FullName, string Role,
-        Guid OrganizationId, Guid PositionId, Guid? DepartmentId);
+        string OrganizationName,
+        string FullName,
+        string Email,
+        string Password,
+        string PositionTitle);
 
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _auth;
-        public AuthController(IAuthService auth) => _auth = auth;
+        private readonly ICurrentUserProvider _currentUser;
+        public AuthController(IAuthService auth, ICurrentUserProvider currentUser) { _auth = auth; _currentUser = currentUser; }
 
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         { 
             var result = await _auth.LoginAsync(new LoginCommand(req.Email, req.Password));
-            return Ok(result);
+            return Ok(new
+            {
+                token = result!.Token,
+                userId = result.User.Id,
+                fullName = result.User.FullName,
+                role = result.User.Role,
+                organizationId = result.User.OrganizationId,
+                departmentId = result.User.DepartmentId,
+                isMainDirector = result.User.IsMainDirector,
+            });
+
         }
 
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest req)
         {
-            var user = await _auth.RegisterAsync(new RegisterCommand(
-                req.Email, req.Password, req.FullName, req.Role,
-                req.OrganizationId, req.PositionId, req.DepartmentId));
-            return CreatedAtAction(null, user);
+            var res = await _auth.RegisterAsync(new RegisterCommand(
+                req.OrganizationName, req.FullName, req.Email, req.Password,req.PositionTitle));
+            return Ok(new
+            {
+                token = res.Token,
+                userId = res.User.Id,
+                fullName = res.User.FullName,
+                role = res.User.Role,
+                organizationId = res.User.OrganizationId,
+                isMainDirector = res.User.IsMainDirector,
+            });
         }
 
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> Me([FromServices] ICurrentUserProvider up)
         {
-            var user = up.GetCurrent();
+            var user = _currentUser.GetCurrent();
             if (user == null) return Unauthorized();
             return Ok(user);
         }

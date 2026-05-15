@@ -31,7 +31,7 @@ namespace BetterCRM.Business.Services
             var (shift, err) = Shift.Create(user.OrganizationId, cmd.UserId, cmd.Date, cmd.StartTime, cmd.EndTime);
             if (err != null) throw new DomainException(err);
 
-            return await _shiftRepo.AddAsync(shift);
+            return await _shiftRepo.AddAsync(shift!);
         }
 
         public async Task<List<Shift>> GetForDepartmentAsync(Guid departmentId, DateTime from, DateTime to) =>
@@ -64,7 +64,7 @@ namespace BetterCRM.Business.Services
 
         private async Task ValidateAccessAsync(string actorRole, Guid? actorDeptId, Guid targetUserId)
         {
-            if (actorRole != "Admin" && actorRole != "OrganizationHead" && actorRole != "DepartmentHead")
+            if (actorRole != "OrganizationHead" && actorRole != "DepartmentHead")
                 throw new UnauthorizedOperationException("Недостаточно прав");
 
             if (actorRole == "DepartmentHead" && actorDeptId.HasValue)

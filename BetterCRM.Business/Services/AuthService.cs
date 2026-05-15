@@ -10,69 +10,63 @@ namespace BetterCRM.Business.Services
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepo;
-        private readonly JwtHelper _jwtHelper;
+        private readonly IOrganizationRepository _orgRepo;
+        private readonly IPositionRepository _positionRepo;
+        private readonly JwtHelper _jwt;
 
-        public AuthService(IUserRepository userRepo, JwtHelper jwtHelper)
+        public AuthService(IUserRepository userRepo, IOrganizationRepository orgRepo, IPositionRepository positionRepo, JwtHelper jwt)
         {
             _userRepo = userRepo;
-            _jwtHelper = jwtHelper;
+            _orgRepo = orgRepo;
+            _positionRepo = positionRepo;
+            _jwt = jwt;
         }
 
-        public async Task<AuthResult> LoginAsync(LoginCommand cmd)
+        public async Task<AuthResult?> LoginAsync(LoginCommand command)
         {
+            var user = await _userRepo.GetByEmailAsync(command.Email)
+                ?? throw new UnauthorizedOperationException("Неверный email или пароль");
 
-            var user = await _userRepo.GetByEmailAsync(cmd.Email);
-
-            var passwordValid = user != null && user.VerifyPassword(cmd.Password);
-
-            if (user == null || !passwordValid)
+            if(!user.VerifyPassword(command.Password))
             {
-                await Task.Delay(300);
                 throw new UnauthorizedOperationException("Неверный email или пароль");
             }
-
-            if (!user.IsActive)
+            if(!user.IsActive)
                 throw new UnauthorizedOperationException("Учётная запись заблокирована");
 
-            var info = new CurrentUserInfo(
-                user.Id,
-                user.Email,
-                user.FullName,
-                user.Role,
-                user.OrganizationId,
-                user.DepartmentId,
-                false);
+            var org = await _orgRepo.GetByIdAsync(user.OrganizationId);
+            var info = BuildUserInfo(user, org);
 
-            return new AuthResult(info, _jwtHelper.GenerateToken(info));
+            return new AuthResult(info, _jwt.GenerateToken(info));
+
         }
 
-        public async Task<CurrentUserInfo> RegisterAsync(RegisterCommand cmd)
+        private CurrentUserInfo BuildUserInfo(User user, Organization? org) =>
+            new(user.Id, user.Email, user.FullName, user.Role, user.OrganizationId,user.DepartmentId, org?.IsMainDirector(user.Id) ?? false );
+
+        public async Task<AuthResult> RegisterAsync(RegisterCommand command)
         {
-            if (await _userRepo.EmailExistsAsync(cmd.Email))
-                throw new ConflictException("Email уже занят");
+            if(await _userRepo.EmailExistsAsync(command.Email))
+                throw new ConflictException("Пользователь с таким email уже существует");
 
-            var (user, err) = User.Create(
-                cmd.OrganizationId,
-                cmd.Email,
-                cmd.Password,
-                cmd.FullName,
-                cmd.Role,
-                cmd.PositionId,
-                cmd.DepartmentId);
+            var (org, orgErr) = Organization.Create(command.OrganizationName);
+            if (org is null) throw new InvalidOperationException(orgErr!);
 
-            if (err != null) throw new DomainException(err);
+            var savedOrg = await _orgRepo.AddAsync(org)
+                ?? throw new InvalidOperationException("Не удалось сохранить организацию");
 
-            await _userRepo.AddAsync(user!);
+            var (position, posErr) = Position.Create(savedOrg.Id, command.PositionTitle, 0, 8);
+            if (position is null) throw new InvalidOperationException(posErr!);
+            var savedPos = await _positionRepo.AddAsync(position);
 
-            return new CurrentUserInfo(
-                user!.Id,
-                user.Email,
-                user.FullName,
-                user.Role,
-                user.OrganizationId,
-                user.DepartmentId,
-                false);
+            var (user, userErr) = User.Create(savedOrg.Id, command.Email, command.Password, command.FullName, "OrgHead", savedPos.Id, null);
+            if(user is null) throw new InvalidOperationException(userErr!);
+
+            savedOrg.AssignMainDirector(user.Id);
+            await _orgRepo.UpdateAsync(savedOrg);
+
+            var info = BuildUserInfo(user, savedOrg);
+            return new AuthResult(info, _jwt.GenerateToken(info));
         }
-
     }
 }

@@ -29,7 +29,7 @@
 
         public static readonly string[] ValidRoles =
         {
-            "Admin", "OrganizationHead", "DepartmentHead", "Employee"
+            "OrganizationHead", "DepartmentHead", "Employee"
         };
 
         private User() { }
