@@ -1,6 +1,7 @@
 ﻿using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Models;
 using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace BetterCRM.DataAccess.Repositories
@@ -11,19 +12,31 @@ namespace BetterCRM.DataAccess.Repositories
         protected override Position MapToDomain(PositionEntity db) => DomainMapper.ToPositionDomain(db);
         protected override PositionEntity MapToDb(Position domain, PositionEntity? existing = null) => DomainMapper.ToPositionDb(domain, existing);
 
-        public Task<Position?> GetByTitleAsync(string title)
+        public async Task<Position?> GetByTitleAsync(string title)
         {
-            throw new NotImplementedException();
+            title = title.Trim();
+            var db = await _dbSet.AsNoTracking().FirstOrDefaultAsync(p => p.Title == title);
+            return db != null ? MapToDomain(db) : null; 
         }
 
-        public Task<List<Position>> GetByDepartmentAsync(Guid departmentId)
+        public async Task<List<Position>> GetByDepartmentAsync(Guid departmentId)
         {
-            throw new NotImplementedException();
+            var list = await _dbSet
+                .AsNoTracking()
+                .Include(p => p.Users)
+                .Where(p => p.Users.Any(u => u.DepartmentId == departmentId))
+                .ToListAsync();
+            return list.Select(MapToDomain).ToList();
         }
 
-        public Task<bool> TitleExistsInDepartmentAsync(string title, Guid departmentId)
+        public async Task<bool> TitleExistsInDepartmentAsync(string title, Guid departmentId)
         {
-            throw new NotImplementedException();
+            title = title.Trim();
+
+            return await _dbSet
+                .AsNoTracking()
+                .Include(p => p.Users)
+                .AnyAsync(p => p.Title == title && p.DepartmentId == departmentId);
         }
     }
 }
