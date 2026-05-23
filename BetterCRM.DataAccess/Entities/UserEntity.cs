@@ -6,7 +6,7 @@
         public string PasswordHash { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Role {  get; set; } = string.Empty;
-        public Guid DepartmentId {  get; set; }
+        public Guid? DepartmentId {  get; set; }
         public DepartmentEntity? Department { get; set; }
         public Guid PositionId { get; set; }
         public PositionEntity Position { get; set; } = null!;

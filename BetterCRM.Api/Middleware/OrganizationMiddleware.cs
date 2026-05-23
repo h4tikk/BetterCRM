@@ -7,22 +7,31 @@ namespace BetterCRM.Api.Middleware
     {
         private readonly RequestDelegate _next;
 
-        private static readonly string[] _publicPaths =
-        [
-            "/api/auth",
-            "/health",
-            "/swagger"
-        ];
-
-        public OrganizationMiddleware(RequestDelegate next) => _next = next;
+        public OrganizationMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
 
         public async Task InvokeAsync(
             HttpContext context,
             ApplicationDbContext dbContext,
             ICurrentUserProvider userProvider)
         {
-            var isPublicPath = _publicPaths.Any(p =>
-                context.Request.Path.StartsWithSegments(p));
+            var path = context.Request.Path;
+
+            var isPublicPath =
+                path.StartsWithSegments("/api/auth") ||
+                path.StartsWithSegments("/openapi") ||
+                path.StartsWithSegments("/swagger");
+
+            var currentUser = userProvider.GetCurrent();
+
+            if (currentUser is not null)
+            {
+                dbContext.CurrentOrganizationId = currentUser.OrganizationId;
+                await _next(context);
+                return;
+            }
 
             if (isPublicPath)
             {
@@ -30,31 +39,11 @@ namespace BetterCRM.Api.Middleware
                 return;
             }
 
-            var user = userProvider.GetCurrent();
-
-            if (user == null)
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsJsonAsync(new { error = "Требуется авторизация" });
-                return;
-            }
-
-            if (user.OrganizationId == Guid.Empty)
-            {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                await context.Response.WriteAsJsonAsync(new { error = "Пользователь не привязан к организации" });
-                return;
-            }
-
-            dbContext.CurrentOrganizationId = user.OrganizationId;
-
-            await _next(context);
+                error = "Требуется авторизация"
+            });
         }
-    }
-
-    public static class OrganizationMiddlewareExtensions
-    {
-        public static IApplicationBuilder UseOrganizationContext(this IApplicationBuilder app)
-            => app.UseMiddleware<OrganizationMiddleware>();
     }
 }

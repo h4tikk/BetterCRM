@@ -64,17 +64,21 @@ namespace BetterCRM.Business.Services
 
         private async Task ValidateAccessAsync(string actorRole, Guid? actorDeptId, Guid targetUserId)
         {
-            if (actorRole != "OrganizationHead" && actorRole != "DepartmentHead")
-                throw new UnauthorizedOperationException("Недостаточно прав");
+            var targetUser = await _userRepo.GetByIdAsync(targetUserId)
+               ?? throw new NotFoundException("Пользователь не найден");
 
-            if (actorRole == "DepartmentHead" && actorDeptId.HasValue)
+            if (actorRole == "OrgHead" || actorRole == "Admin")
+                return;
+
+            if (actorRole == "DepartmentHead")
             {
-                var target = await _userRepo.GetByIdAsync(targetUserId)
-                    ?? throw new NotFoundException("Пользователь не найден");
-
-                if (target.DepartmentId != actorDeptId.Value)
+                if (!actorDeptId.HasValue || targetUser.DepartmentId != actorDeptId.Value)
                     throw new UnauthorizedOperationException("Нельзя управлять сменами другого отдела");
+
+                return;
             }
+
+            throw new UnauthorizedOperationException("Недостаточно прав");
         }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BetterCRM.Core.Extensions
+﻿namespace BetterCRM.Core.Extensions
 {
     public class PagedResult<T>
     {
