@@ -1,4 +1,5 @@
 using BetterCRM.Business.Exceptions;
+using BetterCRM.Core.Constants;
 using BetterCRM.Core.Extensions;
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
@@ -67,10 +68,10 @@ namespace BetterCRM.Business.Services
             var targetUser = await _userRepo.GetByIdAsync(targetUserId)
                ?? throw new NotFoundException("Пользователь не найден");
 
-            if (actorRole == "OrgHead" || actorRole == "Admin")
+            if (actorRole == Roles.OrganizationHead)
                 return;
 
-            if (actorRole == "DepartmentHead")
+            if (actorRole == Roles.DepartmentHead)
             {
                 if (!actorDeptId.HasValue || targetUser.DepartmentId != actorDeptId.Value)
                     throw new UnauthorizedOperationException("Нельзя управлять сменами другого отдела");

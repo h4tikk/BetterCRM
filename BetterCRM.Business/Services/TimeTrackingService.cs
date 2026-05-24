@@ -39,7 +39,7 @@ namespace BetterCRM.Business.Services
             var todayShift = await _shiftRepo.GetByUserAndDateAsync(command.UserId, DateTime.UtcNow.Date);
 
             var (session, err) = WorkSession.Start(user.OrganizationId, command.UserId, todayShift?.Id);
-            if (err != null) throw new DomainException(err);
+            if (session == null) throw new DomainException(err!);
 
             return await _sessionRepo.AddAsync(session);
         }

@@ -30,7 +30,7 @@ namespace BetterCRM.Api.Controllers
         [Authorize(Roles = "OrganizationHead,DepartmentHead")]
         public async Task<IActionResult> Create([FromBody] CreateUserRequest req)
         {
-            var creator = _currentUser.GetCurrent();
+            var creator = _currentUser.GetCurrent()!;
             var user = await _userService.CreateUserAsync(creator, new CreateUserCommand(
                 req.FullName, req.Email, req.Password, req.Role, req.PositionId, req.DepartmentId));
 

@@ -1,3 +1,4 @@
+using BetterCRM.Core.Constants;
 using BetterCRM.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,7 @@ namespace BetterCRM.Api.Controllers
             return Ok(record);
         }
 
-        [Authorize(Roles = "Admin,OrganizationHead")]
+        [Authorize(Roles = Roles.Managers)]
         [HttpPost("calculate/user/{userId:guid}")]
         public async Task<IActionResult> CalculateForUser(
             Guid userId,
@@ -45,7 +46,7 @@ namespace BetterCRM.Api.Controllers
         }
 
 
-        [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
+        [Authorize(Roles = Roles.Managers)]
         [HttpPost("calculate/department/{departmentId:guid}")]
         public async Task<IActionResult> CalculateForDepartment(
             Guid departmentId,

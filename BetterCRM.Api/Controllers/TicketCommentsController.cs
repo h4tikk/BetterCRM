@@ -18,7 +18,7 @@ namespace BetterCRM.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll(Guid ticketId)
         {
-            var comments = _service.GetByTicketAsync(ticketId);
+            var comments = await _service.GetByTicketAsync(ticketId);
             return Ok(comments);
         }
 
@@ -26,21 +26,34 @@ namespace BetterCRM.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Add(Guid ticketId, [FromForm] string text, [FromForm] IFormFileCollection? files = null)
         {
-            var attachments = files?
-            .Select(f => (f.OpenReadStream(), f.FileName, f.ContentType, f.Length))
-            .ToList();
+            var streams = new List<Stream>();
+            try
+            {
+                var attachments = files?
+                    .Select(f =>
+                    {
+                        var s = f.OpenReadStream();
+                        streams.Add(s);
+                        return (s, f.FileName, f.ContentType, f.Length);
+                    })
+                    .ToList();
 
-            var (comment, error) = await _service.AddCommentAsync(
-                ticketId: ticketId,
-                authorId: UserId,
-                authorName: CurrentUser.GetCurrent()!.FullName,
-                organizationId: OrgId,
-                text: text,
-                files: attachments
-            );
+                var (comment, error) = await _service.AddCommentAsync(
+                    ticketId: ticketId,
+                    authorId: UserId,
+                    authorName: CurrentUser.GetCurrent()!.FullName,
+                    organizationId: OrgId,
+                    text: text,
+                    files: attachments);
 
-            if (comment is null) return BadRequest(new { error });
-            return Ok(comment);
+                if (comment is null) return BadRequest(new { error });
+                return Ok(comment);
+            }
+            finally
+            {
+                foreach (var s in streams)
+                    await s.DisposeAsync();
+            }
         }
 
         [HttpPut("{commentId:guid}")]

@@ -21,7 +21,7 @@ namespace BetterCRM.DataAccess
             db ??= new();
             db.Id = d.Id; db.Name = d.Name; db.Slug = d.Slug; db.IsActive = d.IsActive;
             db.MainDirectorId = d.MainDirectorId;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -38,7 +38,7 @@ namespace BetterCRM.DataAccess
         {
             db ??= new();
             db.Id = d.Id; db.OrganizationId = d.OrganizationId; db.Name = d.Name;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -56,7 +56,7 @@ namespace BetterCRM.DataAccess
             db ??= new();
             db.Id = d.Id; db.OrganizationId = d.OrganizationId; db.Title = d.Title;
             db.HourlyRate = d.HourlyRate; db.DailyNormHours = d.DailyNormHours;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -77,9 +77,9 @@ namespace BetterCRM.DataAccess
             db ??= new();
             db.Id = d.Id; db.OrganizationId = d.OrganizationId; db.Email = d.Email;
             db.PasswordHash = d.PasswordHash; db.FullName = d.FullName; db.Role = d.Role;
-            db.PositionId = d.PositionId; db.DepartmentId = (Guid)d.DepartmentId;
+            db.PositionId = d.PositionId; db.DepartmentId = d.DepartmentId;
             db.HireDate = d.HireDate; db.IsActive = d.IsActive;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -103,7 +103,7 @@ namespace BetterCRM.DataAccess
             db.Status = d.Status.ToString();
             db.LatenessPenaltyHours = d.LatenessPenaltyHours;
             db.EarlyLeavePenaltyHours = d.EarlyLeavePenaltyHours;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -123,7 +123,7 @@ namespace BetterCRM.DataAccess
             db.Id = d.Id; db.OrganizationId = d.OrganizationId; db.UserId = d.UserId;
             db.ShiftId = d.ShiftId; db.StartedAt = d.StartedAt; db.EndedAt = d.EndedAt;
             db.Comment = d.Comment;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -142,7 +142,7 @@ namespace BetterCRM.DataAccess
             db ??= new();
             db.Id = d.Id; db.OrganizationId = d.OrganizationId; db.WorkSessionId = d.WorkSessionId;
             db.TicketId = d.TicketId; db.DurationHours = d.DurationHours; db.Description = d.Description;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -177,7 +177,7 @@ namespace BetterCRM.DataAccess
             db.SLATargetHours = d.SLATargetHours;
             db.IsSLABreached = d.IsSLABreached;
             db.OverduePenaltyHours = d.OverduePenaltyHours;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -196,7 +196,7 @@ namespace BetterCRM.DataAccess
             db.Id = d.Id; db.OrganizationId = d.OrganizationId;
             db.TicketId = d.TicketId; db.UserId = d.UserId;
             db.Role = d.Role; db.JoinedAt = d.JoinedAt;
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
 
@@ -238,7 +238,7 @@ namespace BetterCRM.DataAccess
             db.FinalBillableHours = d.FinalBillableHours;
             db.HourlyRate = d.HourlyRate; db.CalculatedSalary = d.CalculatedSalary;
             db.Status = d.Status.ToString();
-            db.CreatedAt = d.CreatedAt; db.UpdatedAt = (DateTime)d.UpdatedAt;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
         public static Notification ToNotificationDomain(NotificationEntity db) =>
@@ -363,7 +363,7 @@ namespace BetterCRM.DataAccess
                 AuthorId = domain.AuthorId,
                 Text = domain.Text,
                 CreatedAt = domain.CreatedAt,
-                UpdatedAt = (DateTime)domain.UpdatedAt
+                UpdatedAt = domain.UpdatedAt ?? domain.CreatedAt
             };
         }
     }

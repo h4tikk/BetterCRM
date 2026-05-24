@@ -1,4 +1,5 @@
-﻿using BetterCRM.Core.Interfaces.Repositories;
+﻿using BetterCRM.Core.Extensions;
+using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Models;
 using BetterCRM.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -72,9 +73,13 @@ namespace BetterCRM.DataAccess.Repositories
 
         public async Task<List<Ticket>> GetOverdueAsync()
         {
-            var list = await BaseQuery
-                .Where(t => t.IsSLABreached && (t.Status == "Open" || t.Status == "InProgress"))
-                .ToListAsync();
+            var list = await _context.Tickets
+                        .Where(t =>
+                            t.Status != "Resolved" &&
+                            t.Status != "Closed" &&
+                            t.OverduePenaltyHours == 0 &&
+                            t.CreatedAt.AddHours((double)t.SLATargetHours) < DateTime.UtcNow)
+                        .ToListAsync();
             return list.Select(MapToDomain).ToList();
         }
 
@@ -101,7 +106,7 @@ namespace BetterCRM.DataAccess.Repositories
                     ids.Contains(t.CreatorId) ||
                     (t.AssigneeId.HasValue && ids.Contains(t.AssigneeId.Value)));
             }
-            return await q.GroupBy(t => t.Status).ToDictionaryAsync(g => g.Key, g => g.Count());
+            return await q.GroupBy(t => t.Status).ToDictionaryAsync(g => g.Key.ToString(), g => g.Count());
         }
 
         public async Task<decimal> GetTicketPenaltyHoursAsync(Guid userId, DateTime from, DateTime to) =>

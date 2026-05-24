@@ -97,13 +97,10 @@ builder.Services.AddCors(opt =>
     opt.AddPolicy("SignalRPolicy", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "https://yourdomain.com"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();          
+           .WithOrigins(allowedOrigins)  
+           .AllowAnyHeader()
+           .AllowAnyMethod()
+           .AllowCredentials();
     });
 });
 
@@ -152,7 +149,6 @@ app.UseHttpsRedirection();
 app.UseCors("SignalRPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseOrganizationContext();
 
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<NotificationHub>("/hubs/notifications");

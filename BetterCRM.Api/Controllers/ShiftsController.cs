@@ -1,3 +1,4 @@
+using BetterCRM.Core.Constants;
 using BetterCRM.Core.Extensions;
 using BetterCRM.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -17,7 +18,7 @@ namespace BetterCRM.Api.Controllers
             : base(up) => _shifts = shifts;
 
 
-        [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
+        [Authorize(Roles = Roles.Managers)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateShiftRequest req)
         {
@@ -48,14 +49,14 @@ namespace BetterCRM.Api.Controllers
             return Ok(shifts);
         }
 
-        [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
+        [Authorize(Roles = Roles.Managers)]
         [HttpGet("department/{departmentId:guid}")]
         public async Task<IActionResult> GetForDepartment(
             Guid departmentId,
             [FromQuery] DateTime from,
             [FromQuery] DateTime to)
         {
-            if (UserRole == "DepartmentHead" && departmentId != UserDeptId)
+            if (UserRole == Roles.DepartmentHead && departmentId != UserDeptId)
                 return Forbid();
 
             var shifts = await _shifts.GetForDepartmentAsync(departmentId, from, to);
@@ -73,7 +74,7 @@ namespace BetterCRM.Api.Controllers
             return Ok(shifts);
         }
 
-        [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
+        [Authorize(Roles = Roles.Managers)]
         [HttpPatch("{shiftId:guid}")]
         public async Task<IActionResult> Update(
             Guid shiftId, [FromBody] UpdateShiftRequest req)

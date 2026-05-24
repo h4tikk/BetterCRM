@@ -2,6 +2,7 @@
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
 using BetterCRM.Core.Models;
+using BetterCRM.Core.Constants;
 using static BetterCRM.Business.Exceptions.DomainException;
 
 namespace BetterCRM.Business.Services
@@ -35,7 +36,7 @@ namespace BetterCRM.Business.Services
                 cmd.CreatorId,
                 cmd.DepartmentId,
                 cmd.AssigneeId);
-            if (err != null) throw new DomainException(err);
+            if (ticket == null) throw new DomainException(err!);
 
             return await _ticketRepo.AddAsync(ticket);
         }
@@ -51,7 +52,7 @@ namespace BetterCRM.Business.Services
             var approver = await _userRepo.GetByIdAsync(approverId)
                 ?? throw new NotFoundException("Пользователь не найден");
 
-            if (approver.Role == "Employee")
+            if (approver.Role == Roles.Employee)
                 throw new UnauthorizedOperationException("Недостаточно прав для одобрения тикета");
 
             var ticket = await _ticketRepo.GetByIdAsync(ticketId)
@@ -66,7 +67,7 @@ namespace BetterCRM.Business.Services
             var rejecter = await _userRepo.GetByIdAsync(rejecterId)
                 ?? throw new NotFoundException("Пользователь не найден");
 
-            if (rejecter.Role == "Employee")
+            if (rejecter.Role == Roles.Employee)
                 throw new UnauthorizedOperationException("Недостаточно прав для отклонения тикета");
 
             var ticket = await _ticketRepo.GetByIdAsync(ticketId)
@@ -102,7 +103,7 @@ namespace BetterCRM.Business.Services
             var closer = await _userRepo.GetByIdAsync(closerId)
                 ?? throw new NotFoundException("Пользователь не найден");
             var isCreator = ticket.CreatorId == closerId;
-            var isManager = closer.Role is "Admin" or "OrganizationHead" or "DepartmentHead";
+            var isManager = closer.Role is Roles.OrganizationHead or Roles.DepartmentHead;
 
             if (!isCreator && !isManager)
                 throw new UnauthorizedOperationException("Только создатель или менеджер может закрыть тикет");
@@ -120,16 +121,20 @@ namespace BetterCRM.Business.Services
                 ?? throw new NotFoundException("Запрашивающий не найден");
 
             var isAssignee = ticket.AssigneeId == requesterId;
-            var isManager = requester.Role is "Admin" or "OrganizationHead" or "DepartmentHead";
+            var isManager = requester.Role is "OrganizationHead" or "DepartmentHead";
 
             if (!isAssignee && !isManager)
                 throw new UnauthorizedOperationException("Только исполнитель или менеджер может добавлять участников");
 
+            if (ticket.CreatorId == userId || ticket.AssigneeId == userId)
+                throw new ConflictException("Пользователь уже связан с тикетом в роли создателя или исполнителя");
+
             if (await _participantRepo.IsParticipantAsync(ticketId, userId))
                 throw new ConflictException("Участник уже добавлен");
 
+
             var (p, err) = TicketParticipant.Create(ticket.OrganizationId, ticketId, userId, role);
-            if (err != null) throw new DomainException(err);
+            if (p == null) throw new DomainException(err!);
 
             await _participantRepo.AddAsync(p);
         }
@@ -144,7 +149,7 @@ namespace BetterCRM.Business.Services
 
             var isSelf = requesterId == userId;
             var isAssignee = ticket.AssigneeId == requesterId;
-            var isManager = requester.Role is "Admin" or "OrganizationHead" or "DepartmentHead";
+            var isManager = requester.Role is Roles.OrganizationHead or Roles.DepartmentHead;
 
             if (!isSelf && !isAssignee && !isManager)
                 throw new UnauthorizedOperationException("Недостаточно прав для удаления участника");
@@ -158,12 +163,18 @@ namespace BetterCRM.Business.Services
         public async Task<int> CheckAndMarkOverdueAsync()
         {
             var overdue = await _ticketRepo.GetOverdueAsync();
+            var processed = 0;
             foreach (var t in overdue)
             {
-                t.CheckSLA();
-                if (t.IsSLABreached && t.OverduePenaltyHours == 0)
-                    t.ApplyOverduePenalty();
-                await _ticketRepo.UpdateAsync(t);
+                try
+                {
+                    t.CheckSLA();
+                    if (t.IsSLABreached && t.OverduePenaltyHours == 0)
+                        t.ApplyOverduePenalty();
+                    await _ticketRepo.UpdateAsync(t);
+                    processed++;
+                }
+                catch (InvalidOperationException) { }
             }
             return overdue.Count;
         }

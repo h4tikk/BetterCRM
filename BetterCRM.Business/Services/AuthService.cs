@@ -46,7 +46,7 @@ namespace BetterCRM.Business.Services
 
         public async Task<AuthResult> RegisterAsync(RegisterCommand command)
         {
-            if(await _userRepo.EmailExistsAsync(command.Email))
+            if (await _userRepo.EmailExistsAsync(command.Email))
                 throw new ConflictException("Пользователь с таким email уже существует");
 
             var (org, orgErr) = Organization.Create(command.OrganizationName);
@@ -59,13 +59,16 @@ namespace BetterCRM.Business.Services
             if (position is null) throw new InvalidOperationException(posErr!);
             var savedPos = await _positionRepo.AddAsync(position);
 
-            var (user, userErr) = User.Create(savedOrg.Id, command.Email, command.Password, command.FullName, "OrgHead", savedPos.Id, null);
-            if(user is null) throw new InvalidOperationException(userErr!);
+            var (user, userErr) = User.Create(savedOrg.Id, command.Email, command.Password,
+                command.FullName, "OrganizationHead", savedPos.Id, null);
+            if (user is null) throw new InvalidOperationException(userErr!);
 
-            savedOrg.AssignMainDirector(user.Id);
+            var savedUser = await _userRepo.AddAsync(user);
+
+            savedOrg.AssignMainDirector(savedUser.Id);
             await _orgRepo.UpdateAsync(savedOrg);
 
-            var info = BuildUserInfo(user, savedOrg);
+            var info = BuildUserInfo(savedUser, savedOrg);
             return new AuthResult(info, _jwt.GenerateToken(info));
         }
     }

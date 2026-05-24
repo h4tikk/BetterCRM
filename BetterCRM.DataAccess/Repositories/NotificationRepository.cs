@@ -16,7 +16,6 @@ namespace BetterCRM.DataAccess.Repositories
         protected override NotificationEntity MapToDb(Notification domain, NotificationEntity? existing = null) =>
             DomainMapper.ToNotificationDb(domain, existing);
 
-        // ─── INotificationRepository ──────────────────────────────────────────────
 
         public async Task SaveManyAsync(List<Notification> notifications)
         {
@@ -66,7 +65,6 @@ namespace BetterCRM.DataAccess.Repositories
         {
             var recipients = new HashSet<Guid>();
 
-            // Создатель тикета
             var creatorId = await _context.Tickets
                 .Where(t => t.Id == ticketId)
                 .Select(t => (Guid?)t.CreatorId)
@@ -75,11 +73,9 @@ namespace BetterCRM.DataAccess.Repositories
             if (creatorId.HasValue)
                 recipients.Add(creatorId.Value);
 
-            // Исполнитель
             if (assigneeId.HasValue)
                 recipients.Add(assigneeId.Value);
 
-            // Руководители отдела
             var heads = await _context.Users
                 .Where(u => u.DepartmentId == departmentId &&
                             u.Role == "DepartmentHead" &&
@@ -89,7 +85,6 @@ namespace BetterCRM.DataAccess.Repositories
 
             foreach (var id in heads) recipients.Add(id);
 
-            // Администраторы организации
             var orgId = await _context.Tickets
                 .Where(t => t.Id == ticketId)
                 .Select(t => t.OrganizationId)

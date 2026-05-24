@@ -33,14 +33,14 @@ namespace BetterCRM.DataAccess.Repositories
         }
 
         public async Task<decimal> GetTotalHoursAsync(Guid userId, DateTime from, DateTime to) =>
-            await _dbSet.Where(ws => ws.UserId == userId && ws.EndedAt.HasValue && ws.StartedAt >= from && ws.StartedAt <= to)
-                        .SumAsync(ws => (decimal)(ws.EndedAt.Value - ws.StartedAt).TotalHours);
+            await _dbSet.Where(ws => ws.UserId == userId && ws.StartedAt >= from && ws.StartedAt <= to)
+                        .SumAsync(ws => (decimal)((ws.EndedAt ?? DateTime.UtcNow) - ws.StartedAt).TotalHours);
 
         public async Task<Dictionary<DateTime, decimal>> GetHoursByDayAsync(Guid userId, DateTime from, DateTime to)
         {
-            var list = await _dbSet.Where(ws => ws.UserId == userId && ws.EndedAt.HasValue && ws.StartedAt >= from && ws.StartedAt <= to).ToListAsync();
+            var list = await _dbSet.Where(ws => ws.UserId == userId && ws.StartedAt >= from && ws.StartedAt <= to).ToListAsync();
             return list.GroupBy(ws => ws.StartedAt.Date)
-                       .ToDictionary(g => g.Key, g => g.Sum(ws => (decimal)(ws.EndedAt!.Value - ws.StartedAt).TotalHours));
+                       .ToDictionary(g => g.Key, g => g.Sum(ws => (decimal)((ws.EndedAt ?? DateTime.UtcNow) - ws.StartedAt).TotalHours));
         }
     }
 }

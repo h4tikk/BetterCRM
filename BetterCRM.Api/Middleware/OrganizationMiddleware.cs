@@ -24,6 +24,12 @@ namespace BetterCRM.Api.Middleware
                 path.StartsWithSegments("/openapi") ||
                 path.StartsWithSegments("/swagger");
 
+            if (isPublicPath)
+            {
+                await _next(context);
+                return;
+            }
+
             var currentUser = userProvider.GetCurrent();
 
             if (currentUser is not null)
@@ -33,11 +39,6 @@ namespace BetterCRM.Api.Middleware
                 return;
             }
 
-            if (isPublicPath)
-            {
-                await _next(context);
-                return;
-            }
 
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await context.Response.WriteAsJsonAsync(new

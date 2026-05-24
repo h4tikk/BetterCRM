@@ -3,7 +3,6 @@ using BetterCRM.Business.Policies;
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
 using BetterCRM.Core.Models;
-using Microsoft.EntityFrameworkCore;
 using static BetterCRM.Business.Exceptions.DomainException;
 
 namespace BetterCRM.Business.Services
@@ -45,7 +44,7 @@ namespace BetterCRM.Business.Services
                 scheduled, actualBillable,
                 attendancePenalty, ticketPenalty,
                 user.Position.HourlyRate);
-            if (err != null) throw new DomainException(err);
+            if (record == null) throw new DomainException(err!);
 
             await _payrollRepo.UpsertAsync(record);
             return record;
@@ -56,9 +55,29 @@ namespace BetterCRM.Business.Services
         {
             var users = await _userRepo.GetActiveByDepartmentAsync(departmentId);
 
-            var tasks = users.Select(u => CalculateForUserAsync(u.Id, year, month));
-            var results = await Task.WhenAll(tasks);
-            return results.ToList();
+            var results = new List<PayrollRecord>();
+            var errors = new List<(Guid UserId, string Error)>();
+
+            foreach (var u in users)
+            {
+                try
+                {
+                    var record = await CalculateForUserAsync(u.Id, year, month);
+                    results.Add(record);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add((u.Id, ex.Message));
+                }
+            }
+
+            if (errors.Count > 0)
+                throw new AggregateException(
+                    $"Не удалось рассчитать зарплату для {errors.Count} сотрудников: " +
+                    string.Join(", ", errors.Select(e => $"{e.UserId}: {e.Error}")),
+                    errors.Select(e => new Exception(e.Error)));
+
+            return results;
         }
 
         public async Task<PayrollRecord?> GetRecordAsync(Guid userId, int year, int month)

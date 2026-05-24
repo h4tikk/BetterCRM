@@ -7,14 +7,13 @@ namespace BetterCRM.Core.Models
         public string Title { get; internal set; } = string.Empty;
         public string? Description { get; internal set; }
 
-        // ✅ ИЗМЕНЕНО: string → enum
+
         public TicketPriority Priority { get; internal set; }
         public TicketStatus Status { get; internal set; } = TicketStatus.Draft;
 
         public Guid CreatorId { get; internal set; }
         public Guid? AssigneeId { get; internal set; }
 
-        // ✅ НОВОЕ: к какому отделу относится тикет
         public Guid? DepartmentId { get; internal set; }
 
         public DateTime? ResolvedAt { get; internal set; }

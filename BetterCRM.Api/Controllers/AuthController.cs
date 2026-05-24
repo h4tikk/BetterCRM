@@ -57,7 +57,7 @@ namespace BetterCRM.Api.Controllers
 
         [Authorize]
         [HttpGet("me")]
-        public async Task<IActionResult> Me([FromServices] ICurrentUserProvider up)
+        public Task<IActionResult> Me([FromServices] ICurrentUserProvider up)
         {
             var user = _currentUser.GetCurrent();
             if (user == null) return Unauthorized();

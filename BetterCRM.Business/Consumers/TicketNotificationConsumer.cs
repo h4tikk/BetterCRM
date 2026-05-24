@@ -97,9 +97,13 @@ namespace BetterCRM.Business.Consumers
         private static string BuildBody(TicketNotificationEvent e) => e.Type switch
         {
             NotifyType.CommentAdded =>
-                $"{e.TriggeredByName}: {e.CommentText?[..Math.Min(100, e.CommentText.Length)]}",
+               e.CommentText is { Length: > 0 } text
+                    ? $"{e.TriggeredByName}: {text[..Math.Min(100, text.Length)]}"
+                    : $"{e.TriggeredByName} оставил комментарий",
+
             NotifyType.TicketAssigned =>
                 $"Назначил: {e.TriggeredByName}",
+
             _ =>
                 $"Действие выполнил: {e.TriggeredByName}"
         };

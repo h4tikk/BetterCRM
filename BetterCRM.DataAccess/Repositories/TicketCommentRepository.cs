@@ -49,7 +49,7 @@ namespace BetterCRM.DataAccess.Repositories
             if (entity is null) return;
 
             entity.Text = comment.Text;
-            entity.UpdatedAt = (DateTime)comment.UpdatedAt;
+            entity.UpdatedAt = comment.UpdatedAt ?? comment.CreatedAt;
             await _context.SaveChangesAsync();
         }
 

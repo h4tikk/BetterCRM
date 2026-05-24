@@ -25,8 +25,9 @@ namespace BetterCRM.Core.Models
                 return (null, "Некорректный пользователь");
             if (end <= start)
                 return (null, "Время окончания должно быть позже начала");
-            if (date < DateTime.UtcNow.Date.AddDays(-1))
-                return (null, "Нельзя создавать смены в прошлом");
+            const int AllowedBackfillDays = 1;
+            if (date < DateTime.UtcNow.Date.AddDays(-AllowedBackfillDays))
+                return (null, $"Нельзя создавать смены ранее чем {AllowedBackfillDays} день назад");
 
             return (new Shift
             {
