@@ -60,8 +60,8 @@ namespace BetterCRM.Api.Controllers
         public Task<IActionResult> Me([FromServices] ICurrentUserProvider up)
         {
             var user = _currentUser.GetCurrent();
-            if (user == null) return Unauthorized();
-            return Ok(user);
+            if (user == null) return Task.FromResult<IActionResult>(Unauthorized());
+            return Task.FromResult<IActionResult>(Ok(user));
         }
     }
 }
