@@ -8,6 +8,12 @@
         Guid? RecipientId,
         Guid? ChatRoomId,
         string Text,
-        DateTime SentAt
+        DateTime SentAt,
+        string MessageType = "text",
+        string? AttachmentObject = null,
+        string? AttachmentUrl = null,
+        string? AttachmentName = null,
+        long? AttachmentSize = null,
+        string? AttachmentMime = null
     );
 }

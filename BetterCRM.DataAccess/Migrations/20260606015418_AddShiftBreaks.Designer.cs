@@ -3,6 +3,7 @@ using System;
 using BetterCRM.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BetterCRM.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260606015418_AddShiftBreaks")]
+    partial class AddShiftBreaks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,21 +31,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AttachmentMime")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("AttachmentName")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("AttachmentObjectName")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<long?>("AttachmentSize")
-                        .HasColumnType("bigint");
-
                     b.Property<Guid?>("ChatRoomId")
                         .HasColumnType("uuid");
 
@@ -53,13 +41,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
-
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("text");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
@@ -317,9 +298,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<int>("DailyNormHours")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("DepartmentId")
-                        .HasColumnType("uuid");
-
                     b.Property<decimal>("HourlyRate")
                         .HasColumnType("decimal(10,2)");
 
@@ -338,8 +316,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("OrganizationId");
 
@@ -732,7 +708,7 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid?>("DepartmentEntityId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("DepartmentId")
+                    b.Property<Guid>("DepartmentId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Email")
@@ -947,11 +923,6 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.PositionEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.DepartmentEntity", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
                         .WithMany()
                         .HasForeignKey("OrganizationId")
@@ -963,8 +934,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasForeignKey("OrganizationId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Department");
 
                     b.Navigation("Organization");
                 });
@@ -1191,7 +1160,8 @@ namespace BetterCRM.DataAccess.Migrations
                     b.HasOne("BetterCRM.DataAccess.Entities.DepartmentEntity", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
                         .WithMany()

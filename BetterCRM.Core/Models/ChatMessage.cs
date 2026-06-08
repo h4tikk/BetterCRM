@@ -12,6 +12,14 @@
         public string? SenderAvatar { get; internal set; }
         public string? RecipientName { get; internal set; }
 
+        public string MessageType { get; internal set; } = "text";
+
+        public string? AttachmentUrl { get; internal set; }
+        public string? AttachmentName { get; internal set; }
+        public string? AttachmentObject { get; internal set; }
+        public long? AttachmentSize { get; internal set; }
+        public string? AttachmentMime { get; internal set; }
+
         public const int MaxTextLength = 2000;
         public const int MinTextLength = 1;
 
@@ -20,17 +28,28 @@
         public static (ChatMessage? message, string? error) Create(
             Guid organizationId,
             Guid senderId,
-            string text,
+            string? text,
+            string messageType = "text",
+            string? attachmentUrl = null,
+            string? attachmentName = null,
+            string? attachmentObject = null,
+            long? attachmentSize = null,
+            string? attachmentMime = null,
             Guid? recipientId = null,
-            Guid? chatRoomId = null)
+            Guid? chatRoomId = null,
+            Guid? id = null,
+            DateTime? sentAt = null)
         {
             text = text?.Trim() ?? string.Empty;
 
-            if (string.IsNullOrWhiteSpace(text))
-                return (null, "Сообщение не может быть пустым");
-
             if (text.Length > MaxTextLength)
                 return (null, $"Сообщение не может превышать {MaxTextLength} символов");
+
+            if (messageType == "text" && string.IsNullOrWhiteSpace(text))
+                return (null, "Сообщение не может быть пустым");
+
+            if (messageType != "text" && string.IsNullOrWhiteSpace(attachmentObject))
+                return (null, "Для вложения необходим путь к файлу");
 
             if (senderId == Guid.Empty)
                 return (null, "Некорректный отправитель");
@@ -44,17 +63,25 @@
             if (recipientId.HasValue && recipientId == senderId)
                 return (null, "Нельзя отправить сообщение самому себе");
 
+            var timestamp = sentAt ?? DateTime.UtcNow;
+
             return (new ChatMessage
             {
-                Id = Guid.NewGuid(),
+                Id = id ?? Guid.NewGuid(),
                 OrganizationId = organizationId,
                 SenderId = senderId,
                 RecipientId = recipientId,
                 ChatRoomId = chatRoomId,
                 Text = text,
-                SentAt = DateTime.UtcNow,
+                MessageType = messageType,
+                AttachmentUrl = attachmentUrl,
+                AttachmentName = attachmentName,
+                AttachmentObject = attachmentObject,
+                AttachmentSize = attachmentSize,
+                AttachmentMime = attachmentMime,
+                SentAt = timestamp,
                 IsRead = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = timestamp
             }, null);
         }
 

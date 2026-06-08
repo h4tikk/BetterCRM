@@ -18,6 +18,7 @@ namespace BetterCRM.Core.Interfaces.Services
     {
         Task<WorkSession> StartSessionAsync(StartSessionCommand command);
         Task<decimal> StopSessionAsync(StopSessionCommand command);
+        Task<int> AutoCloseExpiredSessionsAsync();
         Task<WorkSession?> GetActiveSessionAsync(Guid userId);
         Task<List<WorkSession>> GetUserSessionsAsync(Guid userId, DateTime? from = null, DateTime? to = null);
         Task<decimal> GetTodayHoursAsync(Guid userId);

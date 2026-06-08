@@ -14,6 +14,7 @@ namespace BetterCRM.DataAccess
         public DbSet<PositionEntity> Positions => Set<PositionEntity>();
         public DbSet<UserEntity> Users => Set<UserEntity>();
         public DbSet<ShiftEntity> Shifts => Set<ShiftEntity>();
+        public DbSet<ShiftBreakEntity> ShiftBreaks => Set<ShiftBreakEntity>();
         public DbSet<WorkSessionEntity> WorkSessions => Set<WorkSessionEntity>();
         public DbSet<TimeLogEntity> TimeLogs => Set<TimeLogEntity>();
         public DbSet<TicketEntity> Tickets => Set<TicketEntity>();

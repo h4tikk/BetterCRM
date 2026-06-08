@@ -17,8 +17,8 @@ namespace BetterCRM.Business.Helpers
         public JwtHelper(IConfiguration config)
         {
             _key = config["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key");
-            _issuer = config["Jwt:Issuer"] ?? "RemoteWorkApi";
-            _audience = config["Jwt:Audience"] ?? "RemoteWorkClient";
+            _issuer = config["Jwt:Issuer"] ?? "BetterCRMApi";
+            _audience = config["Jwt:Audience"] ?? "BetterCRMClient";
             _expiryMinutes = int.TryParse(config["Jwt:ExpiryMinutes"], out var m) ? m : 1440;
         }
 

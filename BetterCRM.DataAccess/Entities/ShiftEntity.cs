@@ -10,5 +10,6 @@
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public string Status { get; set; } = "Scheduled";
+        public ICollection<ShiftBreakEntity> Breaks { get; set; } = new List<ShiftBreakEntity>();
     }
 }

@@ -5,6 +5,7 @@
         public string Title { get; internal set; } = string.Empty;
         public decimal HourlyRate { get; internal set; }
         public int DailyNormHours { get; internal set; }
+        public Guid? DepartmentId { get; internal set; }
 
 
         public ICollection<User> Users { get; internal set; } = new List<User>();
@@ -18,7 +19,7 @@
 
         private Position() { }
 
-        public static (Position? position, string? error) Create(Guid organizationId,string title, decimal hourlyRate, int dailyHours = 8)
+        public static (Position? position, string? error) Create(Guid organizationId,string title, decimal hourlyRate, int dailyHours = 8, Guid? departmentId = null)
         {
             if (string.IsNullOrWhiteSpace(title))
                 return (null, "Название должности не может быть пустым");
@@ -36,7 +37,8 @@
                 OrganizationId = organizationId,
                 Title = title,
                 HourlyRate = Math.Round(hourlyRate, 2),
-                DailyNormHours = dailyHours
+                DailyNormHours = dailyHours,
+                DepartmentId = departmentId
             }, null);
         }
         public void UpdateRate(decimal newRate)

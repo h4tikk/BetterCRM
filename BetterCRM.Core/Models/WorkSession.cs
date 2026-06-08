@@ -47,6 +47,16 @@ namespace BetterCRM.Core.Models
             return (true, null);
         }
 
+        public (bool success, string? error) AutoClose(string reason)
+        {
+            if (EndedAt.HasValue) return (false, "Сессия уже завершена");
+
+            EndedAt = StartedAt.AddHours(MaxSessionHours);
+            Comment = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+            MarkAsUpdated();
+            return (true, null);
+        }
+
         [NotMapped] public decimal DurationHours => EndedAt.HasValue ? (decimal)(EndedAt.Value - StartedAt).TotalHours : 0m;
         [NotMapped] public bool IsActive => !EndedAt.HasValue;
 

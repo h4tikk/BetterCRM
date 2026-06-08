@@ -22,6 +22,20 @@ namespace BetterCRM.DataAccess.Configurations
                 .IsRequired()
                 .HasDefaultValue(false);
 
+            builder.Property(m => m.MessageType)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("text");
+
+            builder.Property(m => m.AttachmentObjectName)
+                .HasMaxLength(1000);
+
+            builder.Property(m => m.AttachmentName)
+                .HasMaxLength(500);
+
+            builder.Property(m => m.AttachmentMime)
+                .HasMaxLength(100);
+
             builder.HasOne(m => m.Sender)
                 .WithMany()
                 .HasForeignKey(m => m.SenderId)

@@ -72,6 +72,23 @@ namespace BetterCRM.Business.Services
             return session.DurationHours;
         }
 
+        public async Task<int> AutoCloseExpiredSessionsAsync()
+        {
+            var startedBefore = DateTime.UtcNow.AddHours(-WorkSession.MaxSessionHours);
+            var expired = await _sessionRepo.GetExpiredActiveSessionsAsync(startedBefore);
+
+            var closed = 0;
+            foreach (var session in expired)
+            {
+                var (ok, _) = session.AutoClose("Сессия автоматически завершена по таймауту");
+                if (!ok) continue;
+                await _sessionRepo.UpdateAsync(session);
+                closed++;
+            }
+
+            return closed;
+        }
+
         public async Task<WorkSession?> GetActiveSessionAsync(Guid userId) =>
             await _sessionRepo.GetActiveSessionAsync(userId);
 

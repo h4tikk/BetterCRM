@@ -48,10 +48,24 @@ namespace BetterCRM.DataAccess.Repositories
             return db != null ? MapToDomain(db) : null;
         }
 
-        public async Task<decimal> GetTotalScheduledHoursAsync(Guid userId, DateTime from, DateTime to) =>
-            await _dbSet
+        public async Task<Shift?> GetWithBreaksAsync(Guid shiftId)
+        {
+            var db = await _dbSet.Include(s => s.Breaks).FirstOrDefaultAsync(s => s.Id == shiftId);
+            return db != null ? MapToDomain(db) : null;
+        }
+
+        public async Task<decimal> GetTotalScheduledHoursAsync(Guid userId, DateTime from, DateTime to)
+        {
+            var gross = await _dbSet
                 .Where(s => s.UserId == userId && s.Date >= from && s.Date <= to)
                 .SumAsync(s => (decimal)(s.EndTime - s.StartTime).TotalHours);
+
+            var unpaidBreaks = await _context.ShiftBreaks
+                .Where(b => !b.IsPaid && b.Shift.UserId == userId && b.Shift.Date >= from && b.Shift.Date <= to)
+                .SumAsync(b => (decimal)(b.EndTime - b.StartTime).TotalHours);
+
+            return gross - unpaidBreaks;
+        }
 
 
         public async Task<decimal> GetTotalAttendancePenaltyAsync(Guid userId, DateTime from, DateTime to) =>

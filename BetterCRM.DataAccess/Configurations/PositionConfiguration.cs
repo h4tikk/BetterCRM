@@ -25,6 +25,13 @@ namespace BetterCRM.DataAccess.Configurations
                 .WithMany()
                 .HasForeignKey(p => p.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(p => p.Department)
+                .WithMany()
+                .HasForeignKey(p => p.DepartmentId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
             builder.Property(p => p.CreatedAt).HasColumnType("timestamptz");
 
         }

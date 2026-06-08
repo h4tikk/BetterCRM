@@ -44,7 +44,7 @@ namespace BetterCRM.DataAccess
 
         public static Position ToPositionDomain(PositionEntity db)
         {
-            var result = Position.Create(db.OrganizationId, db.Title, db.HourlyRate, db.DailyNormHours);
+            var result = Position.Create(db.OrganizationId, db.Title, db.HourlyRate, db.DailyNormHours, db.DepartmentId);
             if (result.error != null) throw new InvalidOperationException($"DB Data Corrupted: {result.error}");
             var d = result.position!;
             d.Id = db.Id;
@@ -56,6 +56,7 @@ namespace BetterCRM.DataAccess
             db ??= new();
             db.Id = d.Id; db.OrganizationId = d.OrganizationId; db.Title = d.Title;
             db.HourlyRate = d.HourlyRate; db.DailyNormHours = d.DailyNormHours;
+            db.DepartmentId = d.DepartmentId;
             db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
@@ -92,6 +93,9 @@ namespace BetterCRM.DataAccess
             d.Status = Enum.Parse<ShiftStatus>(db.Status);
             d.LatenessPenaltyHours = db.LatenessPenaltyHours;
             d.EarlyLeavePenaltyHours = db.EarlyLeavePenaltyHours;
+            if (db.Breaks != null)
+                foreach (var b in db.Breaks.OrderBy(b => b.StartTime))
+                    d.Breaks.Add(ToShiftBreakDomain(b));
             d.CreatedAt = db.CreatedAt; d.UpdatedAt = db.UpdatedAt;
             return d;
         }
@@ -103,6 +107,26 @@ namespace BetterCRM.DataAccess
             db.Status = d.Status.ToString();
             db.LatenessPenaltyHours = d.LatenessPenaltyHours;
             db.EarlyLeavePenaltyHours = d.EarlyLeavePenaltyHours;
+            db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
+            return db;
+        }
+
+        public static ShiftBreak ToShiftBreakDomain(ShiftBreakEntity db)
+        {
+            var result = ShiftBreak.Create(db.OrganizationId, db.ShiftId,
+                db.StartTime, db.EndTime, Enum.Parse<BreakType>(db.Type), db.IsPaid);
+            if (result.error != null) throw new InvalidOperationException($"DB Data Corrupted: {result.error}");
+            var d = result.shiftBreak!;
+            d.Id = db.Id;
+            d.CreatedAt = db.CreatedAt; d.UpdatedAt = db.UpdatedAt;
+            return d;
+        }
+        public static ShiftBreakEntity ToShiftBreakDb(ShiftBreak d, ShiftBreakEntity? db = null)
+        {
+            db ??= new();
+            db.Id = d.Id; db.OrganizationId = d.OrganizationId; db.ShiftId = d.ShiftId;
+            db.StartTime = d.StartTime; db.EndTime = d.EndTime;
+            db.Type = d.Type.ToString(); db.IsPaid = d.IsPaid;
             db.CreatedAt = d.CreatedAt; db.UpdatedAt = d.UpdatedAt ?? d.CreatedAt;
             return db;
         }
@@ -271,8 +295,9 @@ namespace BetterCRM.DataAccess
             return entity;
         }
 
-        public static ChatMessage ToChatMessageDomain(ChatMessageEntity db) =>
-            ChatMessage.Restore(
+        public static ChatMessage ToChatMessageDomain(ChatMessageEntity db)
+        {
+            var message = ChatMessage.Restore(
                 id: db.Id,
                 organizationId: db.OrganizationId,
                 senderId: db.SenderId,
@@ -289,6 +314,18 @@ namespace BetterCRM.DataAccess
                 createdAt: db.CreatedAt
             );
 
+            message.MessageType = db.MessageType;
+            message.AttachmentObject = db.AttachmentObjectName;
+            message.AttachmentName = db.AttachmentName;
+            message.AttachmentSize = db.AttachmentSize;
+            message.AttachmentMime = db.AttachmentMime;
+            message.AttachmentUrl = db.AttachmentObjectName != null
+                ? $"http://localhost:9000/chat-attachments/{db.AttachmentObjectName}"
+                : null;
+
+            return message;
+        }
+
         public static ChatMessageEntity ToChatMessageDb(ChatMessage domain, ChatMessageEntity? existing = null)
         {
             var entity = existing ?? new ChatMessageEntity();
@@ -302,6 +339,11 @@ namespace BetterCRM.DataAccess
             entity.SentAt = domain.SentAt;
             entity.IsRead = domain.IsRead;
             entity.CreatedAt = domain.CreatedAt;
+            entity.MessageType = domain.MessageType;
+            entity.AttachmentObjectName = domain.AttachmentObject;
+            entity.AttachmentName = domain.AttachmentName;
+            entity.AttachmentSize = domain.AttachmentSize;
+            entity.AttachmentMime = domain.AttachmentMime;
 
             return entity;
         }

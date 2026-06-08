@@ -11,11 +11,13 @@ namespace BetterCRM.Business.Services
     public class ShiftService : IShiftService
     {
         private readonly IShiftRepository _shiftRepo;
+        private readonly IShiftBreakRepository _breakRepo;
         private readonly IUserRepository _userRepo;
 
-        public ShiftService(IShiftRepository shiftRepo, IUserRepository userRepo)
+        public ShiftService(IShiftRepository shiftRepo, IShiftBreakRepository breakRepo, IUserRepository userRepo)
         {
             _shiftRepo = shiftRepo;
+            _breakRepo = breakRepo;
             _userRepo = userRepo;
         }
 
@@ -61,6 +63,32 @@ namespace BetterCRM.Business.Services
             if (cmd.Status == ShiftStatus.Completed) shift.Complete();
 
             await _shiftRepo.UpdateAsync(shift);
+        }
+
+        public async Task<ShiftBreak> AddBreakAsync(Guid shiftId, AddBreakCommand cmd, string actorRole, Guid? actorDeptId)
+        {
+            var shift = await _shiftRepo.GetWithBreaksAsync(shiftId)
+                ?? throw new NotFoundException("Смена не найдена");
+
+            await ValidateAccessAsync(actorRole, actorDeptId, shift.UserId);
+
+            var (shiftBreak, err) = shift.AddBreak(cmd.StartTime, cmd.EndTime, cmd.Type, cmd.IsPaid);
+            if (shiftBreak == null) throw new DomainException(err!);
+
+            return await _breakRepo.AddAsync(shiftBreak);
+        }
+
+        public async Task RemoveBreakAsync(Guid breakId, string actorRole, Guid? actorDeptId)
+        {
+            var shiftBreak = await _breakRepo.GetByIdAsync(breakId)
+                ?? throw new NotFoundException("Перерыв не найден");
+
+            var shift = await _shiftRepo.GetByIdAsync(shiftBreak.ShiftId)
+                ?? throw new NotFoundException("Смена не найдена");
+
+            await ValidateAccessAsync(actorRole, actorDeptId, shift.UserId);
+
+            await _breakRepo.DeleteAsync(breakId);
         }
 
         private async Task ValidateAccessAsync(string actorRole, Guid? actorDeptId, Guid targetUserId)

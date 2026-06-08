@@ -89,7 +89,7 @@ namespace BetterCRM.Business.Consumers
             NotifyType.TicketAssigned => $"Вам назначен тикет: {e.TicketTitle}",
             NotifyType.TicketResolved => $"Тикет решён: {e.TicketTitle}",
             NotifyType.TicketClosed => $"Тикет закрыт: {e.TicketTitle}",
-            NotifyType.CommentAdded => $"Новый комментарий: {e.TicketTitle}",
+            NotifyType.CommentAdded => $"Новый комментарий в тикете {e.TicketTitle} \n {e.CommentText}",
             NotifyType.AttachmentAdded => $"Новый файл: {e.TicketTitle}",
             _ => e.TicketTitle
         };

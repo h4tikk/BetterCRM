@@ -1,4 +1,5 @@
 ﻿using BetterCRM.Business.Exceptions;
+using BetterCRM.Core.Constants;
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
 using BetterCRM.Core.Models;
@@ -20,16 +21,16 @@ namespace BetterCRM.Business.Services
 
         public async Task<User> CreateUserAsync(CurrentUserInfo creator, CreateUserCommand command)
         {
-            if(creator.Role == "DepartmentHead")
+            if(creator.Role == Roles.DepartmentHead)
             {
-                if (command.Role != "Employee")
+                if (command.Role != Roles.Employee)
                     throw new ForbiddenException("Руководитель отдела может создавать только сотрудников");
                 if (command.DepartmentId != creator.DepartmentId)
                     throw new ForbiddenException("Нельзя добавлять сотрудников в чужой отдел");
             }
-            else if (creator.Role == "OrganizationHead")
+            else if (creator.Role == Roles.OrganizationHead)
             {
-                if (command.Role == "OrgHead")
+                if (command.Role == Roles.OrganizationHead)
                     throw new ForbiddenException("Нельзя создать ещё одного руководителя организации");
             }
             else
@@ -40,7 +41,7 @@ namespace BetterCRM.Business.Services
             if (await _userRepo.EmailExistsAsync(command.Email))
                 throw new ConflictException("Пользователь с таким email уже существует");
 
-            if (command.Role == "Employee" && command.DepartmentId is null)
+            if (command.Role == Roles.Employee && command.DepartmentId is null)
                 throw new DomainException("Для сотрудника необходимо указать отдел");
 
             if (command.DepartmentId is not null)

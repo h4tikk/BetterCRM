@@ -8,6 +8,7 @@ namespace BetterCRM.Api.Controllers
 {
     public record CreateShiftRequest(Guid UserId, DateTime Date, TimeSpan StartTime, TimeSpan EndTime);
     public record UpdateShiftRequest(TimeSpan? StartTime, TimeSpan? EndTime, ShiftStatus? Status);
+    public record AddBreakRequest(TimeSpan StartTime, TimeSpan EndTime, BreakType Type, bool IsPaid);
 
     [Authorize]
     public class ShiftsController : BaseApiController
@@ -83,6 +84,25 @@ namespace BetterCRM.Api.Controllers
                 shiftId,
                 new UpdateShiftCommand(req.StartTime, req.EndTime, req.Status),
                 UserId, UserRole, UserDeptId);
+            return NoContent();
+        }
+
+        [Authorize(Roles = Roles.Managers)]
+        [HttpPost("{shiftId:guid}/breaks")]
+        public async Task<IActionResult> AddBreak(Guid shiftId, [FromBody] AddBreakRequest req)
+        {
+            var shiftBreak = await _shifts.AddBreakAsync(
+                shiftId,
+                new AddBreakCommand(req.StartTime, req.EndTime, req.Type, req.IsPaid),
+                UserRole, UserDeptId);
+            return Ok(shiftBreak);
+        }
+
+        [Authorize(Roles = Roles.Managers)]
+        [HttpDelete("breaks/{breakId:guid}")]
+        public async Task<IActionResult> RemoveBreak(Guid breakId)
+        {
+            await _shifts.RemoveBreakAsync(breakId, UserRole, UserDeptId);
             return NoContent();
         }
     }

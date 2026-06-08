@@ -14,6 +14,13 @@
         Cancelled
     }
 
+    public enum BreakType
+    {
+        Lunch,
+        Rest,
+        Custom
+    }
+
     public enum TicketStatus
     {
         Draft,

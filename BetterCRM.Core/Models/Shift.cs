@@ -15,6 +15,8 @@ namespace BetterCRM.Core.Models
         public decimal LatenessPenaltyHours { get; internal set; } = 0;
         public decimal EarlyLeavePenaltyHours { get; internal set; } = 0;
 
+        public ICollection<ShiftBreak> Breaks { get; internal set; } = new List<ShiftBreak>();
+
         private Shift() { }
 
         public static (Shift? shift, string? error) Create(
@@ -79,8 +81,31 @@ namespace BetterCRM.Core.Models
             MarkAsUpdated();
         }
 
+        public (ShiftBreak? shiftBreak, string? error) AddBreak(TimeSpan start, TimeSpan end, BreakType type, bool isPaid)
+        {
+            if (Status != ShiftStatus.Scheduled)
+                return (null, "Добавить перерыв можно только в запланированную смену");
+            if (start < StartTime || end > EndTime)
+                return (null, "Перерыв должен находиться в пределах смены");
+            if (Breaks.Any(b => start < b.EndTime && end > b.StartTime))
+                return (null, "Перерыв пересекается с уже существующим");
+
+            var (shiftBreak, err) = ShiftBreak.Create(OrganizationId, Id, start, end, type, isPaid);
+            if (shiftBreak == null) return (null, err);
+
+            Breaks.Add(shiftBreak);
+            MarkAsUpdated();
+            return (shiftBreak, null);
+        }
+
         public decimal GetScheduledHours() =>
             (decimal)(EndTime - StartTime).TotalHours;
+
+        public decimal GetBreakHours(bool paidOnly = false) =>
+            Breaks.Where(b => !paidOnly || b.IsPaid).Sum(b => b.DurationHours);
+
+        public decimal GetPaidScheduledHours() =>
+            GetScheduledHours() - Breaks.Where(b => !b.IsPaid).Sum(b => b.DurationHours);
 
         public decimal GetTotalPenaltyHours() =>
             LatenessPenaltyHours + EarlyLeavePenaltyHours;

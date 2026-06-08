@@ -18,7 +18,6 @@ namespace BetterCRM.DataAccess.Repositories
         protected override ChatMessageEntity MapToDb(ChatMessage domain, ChatMessageEntity? existing = null) =>
             DomainMapper.ToChatMessageDb(domain, existing);
 
-        // ─── IChatRepository ──────────────────────────────────────────────────────
 
         public async Task SaveMessageAsync(ChatMessage message)
         {

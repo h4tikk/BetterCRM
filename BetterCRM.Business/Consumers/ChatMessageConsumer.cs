@@ -32,8 +32,16 @@ namespace BetterCRM.Business.Consumers
                     organizationId: msg.OrganizationId,
                     senderId: msg.SenderId,
                     text: msg.Text,
+                    messageType: msg.MessageType,
+                    attachmentUrl: msg.AttachmentUrl,
+                    attachmentName: msg.AttachmentName,
+                    attachmentObject: msg.AttachmentObject,
+                    attachmentSize: msg.AttachmentSize,
+                    attachmentMime: msg.AttachmentMime,
                     recipientId: msg.RecipientId,
-                    chatRoomId: msg.ChatRoomId
+                    chatRoomId: msg.ChatRoomId,
+                    id: msg.MessageId,
+                    sentAt: msg.SentAt
                 );
                 if(chatMessage is null)
                 {
@@ -49,6 +57,11 @@ namespace BetterCRM.Business.Consumers
                     recipientId = msg.RecipientId,
                     chatRoomId = msg.ChatRoomId,
                     text = msg.Text,
+                    messageType = msg.MessageType,
+                    attachmentUrl = msg.AttachmentUrl,
+                    attachmentName = msg.AttachmentName,
+                    attachmentSize = msg.AttachmentSize,
+                    attachmentMime = msg.AttachmentMime,
                     sentAt = msg.SentAt,
                     type = msg.RecipientId.HasValue ? "private" : "department"
                 };

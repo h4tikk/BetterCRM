@@ -27,6 +27,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPositionRepository, PositionRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IShiftRepository, ShiftRepository>();
+builder.Services.AddScoped<IShiftBreakRepository, ShiftBreakRepository>();
 builder.Services.AddScoped<IWorkSessionRepository, WorkSessionRepository>();
 builder.Services.AddScoped<ITimeLogRepository, TimeLogRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
@@ -49,6 +50,7 @@ builder.Services.AddScoped<ITicketNotifier, TicketNotifier>();
 
 builder.Services.AddSingleton<JwtHelper>();
 builder.Services.AddSingleton<IUserIdProvider, JwtUserIdProvider>();
+builder.Services.AddHostedService<SessionReaperService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key не задан в конфигурации");
