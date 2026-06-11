@@ -21,8 +21,8 @@ namespace BetterCRM.DataAccess.Configurations
                 .HasColumnType("decimal(10,2)");
             builder.Property(p => p.DailyNormHours).IsRequired().HasColumnType("integer");
 
-            builder.HasOne<OrganizationEntity>()
-                .WithMany()
+            builder.HasOne(p => p.Organization)
+                .WithMany(o => o.Positions)
                 .HasForeignKey(p => p.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
 

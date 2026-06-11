@@ -1,8 +1,10 @@
 ﻿using BetterCRM.Business.Exceptions;
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
+using BetterCRM.Core.Messages;
 using BetterCRM.Core.Models;
 using BetterCRM.Core.Constants;
+using MassTransit;
 using static BetterCRM.Business.Exceptions.DomainException;
 
 namespace BetterCRM.Business.Services
@@ -12,15 +14,21 @@ namespace BetterCRM.Business.Services
         private readonly ITicketRepository _ticketRepo;
         private readonly ITicketParticipantRepository _participantRepo;
         private readonly IUserRepository _userRepo;
+        private readonly IDepartmentRepository _departmentRepo;
+        private readonly IPublishEndpoint _bus;
 
         public TicketService(
             ITicketRepository ticketRepo,
             ITicketParticipantRepository participantRepo,
-            IUserRepository userRepo)
+            IUserRepository userRepo,
+            IDepartmentRepository departmentRepo,
+            IPublishEndpoint bus)
         {
             _ticketRepo = ticketRepo;
             _participantRepo = participantRepo;
             _userRepo = userRepo;
+            _departmentRepo = departmentRepo;
+            _bus = bus;
         }
 
         public async Task<Ticket> CreateAsync(CreateTicketCommand cmd)
@@ -110,6 +118,82 @@ namespace BetterCRM.Business.Services
 
             ticket.Close();
             await _ticketRepo.UpdateAsync(ticket);
+        }
+
+        public async Task TransferAsync(TransferTicketCommand cmd)
+        {
+            var ticket = await _ticketRepo.GetByIdAsync(cmd.TicketId)
+                ?? throw new NotFoundException("Тикет не найден");
+
+            var requester = await _userRepo.GetByIdAsync(cmd.RequesterId)
+                ?? throw new NotFoundException("Пользователь не найден");
+
+            if (requester.OrganizationId != ticket.OrganizationId)
+                throw new UnauthorizedOperationException("Нет доступа к тикету");
+
+            var isGlobalManager = requester.Role is "Admin" or Roles.OrganizationHead;
+            var isDepartmentHeadOfCurrentTicket =
+                requester.Role == Roles.DepartmentHead &&
+                requester.DepartmentId.HasValue &&
+                ticket.DepartmentId == requester.DepartmentId.Value;
+
+            if (!isGlobalManager && !isDepartmentHeadOfCurrentTicket)
+                throw new UnauthorizedOperationException("Недостаточно прав для передачи тикета");
+
+            var targetDepartment = await _departmentRepo.GetByIdAsync(cmd.TargetDepartmentId)
+                ?? throw new NotFoundException("Отдел не найден");
+
+            if (targetDepartment.OrganizationId != ticket.OrganizationId)
+                throw new UnauthorizedOperationException("Нельзя передать тикет в отдел другой организации");
+
+            User? targetAssignee = null;
+            if (cmd.TargetAssigneeId.HasValue)
+            {
+                targetAssignee = await _userRepo.GetByIdAsync(cmd.TargetAssigneeId.Value)
+                    ?? throw new NotFoundException("Исполнитель не найден");
+
+                if (!targetAssignee.IsActive)
+                    throw new DomainException("Нельзя назначить неактивного пользователя");
+
+                if (targetAssignee.OrganizationId != ticket.OrganizationId)
+                    throw new UnauthorizedOperationException("Нельзя назначить пользователя другой организации");
+
+                if (targetAssignee.DepartmentId != cmd.TargetDepartmentId)
+                    throw new DomainException("Исполнитель должен состоять в целевом отделе");
+            }
+
+            if (ticket.DepartmentId == cmd.TargetDepartmentId &&
+                ticket.AssigneeId == cmd.TargetAssigneeId)
+                throw new ConflictException("Тикет уже находится в этом отделе с указанным исполнителем");
+
+            var previousDepartmentId = ticket.DepartmentId;
+            var previousAssigneeId = ticket.AssigneeId;
+
+            try
+            {
+                ticket.TransferToDepartment(cmd.TargetDepartmentId, cmd.TargetAssigneeId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new DomainException(ex.Message);
+            }
+
+            await _ticketRepo.UpdateAsync(ticket);
+
+            await _bus.Publish(new TicketNotificationEvent(
+                TicketId: ticket.Id,
+                OrganizationId: ticket.OrganizationId,
+                TicketTitle: ticket.Title,
+                Type: NotifyType.TicketTransferred,
+                TriggeredByUserId: requester.Id,
+                TriggeredByName: requester.FullName,
+                AssigneeId: targetAssignee?.Id,
+                DepartmentId: cmd.TargetDepartmentId,
+                CommentText: string.IsNullOrWhiteSpace(cmd.Reason) ? null : cmd.Reason.Trim(),
+                OccurredAt: DateTime.UtcNow,
+                PreviousDepartmentId: previousDepartmentId,
+                PreviousAssigneeId: previousAssigneeId
+            ));
         }
 
         public async Task AddParticipantAsync(Guid ticketId, Guid userId, string role, Guid requesterId)

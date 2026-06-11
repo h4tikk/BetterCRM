@@ -22,7 +22,7 @@ namespace BetterCRM.Api.Middleware
             var isPublicPath =
                 path.StartsWithSegments("/api/auth") ||
                 path.StartsWithSegments("/openapi") ||
-                path.StartsWithSegments("/swagger");
+                path.StartsWithSegments("/scalar");
 
             if (isPublicPath)
             {

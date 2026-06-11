@@ -13,8 +13,10 @@ namespace BetterCRM.DataAccess.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            var db = await _dbSet.Include(u => u.Department).Include(u => u.Position)
-                                 .FirstOrDefaultAsync(u => u.Email == email);
+            var normalized = email.Trim().ToLower();
+            var db = await _dbSet.IgnoreQueryFilters()
+                                 .Include(u => u.Department).Include(u => u.Position)
+                                 .FirstOrDefaultAsync(u => u.Email == normalized);
             return db != null ? MapToDomain(db) : null;
         }
 
@@ -33,7 +35,10 @@ namespace BetterCRM.DataAccess.Repositories
             return list.Select(MapToDomain).ToList();
         }
 
-        public async Task<bool> EmailExistsAsync(string email) =>
-            await _dbSet.AsNoTracking().AnyAsync(u => u.Email == email);
+        public async Task<bool> EmailExistsAsync(string email)
+        {
+            var normalized = email.Trim().ToLower();
+            return await _dbSet.IgnoreQueryFilters().AsNoTracking().AnyAsync(u => u.Email == normalized);
+        }
     }
 }

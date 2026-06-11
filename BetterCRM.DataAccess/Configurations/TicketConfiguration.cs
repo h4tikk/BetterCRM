@@ -26,8 +26,8 @@ namespace BetterCRM.DataAccess.Configurations
             builder.HasIndex(t => new { t.OrganizationId, t.Status, t.CreatedAt });
             builder.HasIndex(t => new { t.OrganizationId, t.DepartmentId });
 
-            builder.HasOne<OrganizationEntity>()
-                   .WithMany()
+            builder.HasOne(t => t.Organization)
+                   .WithMany(o => o.Tickets)
                    .HasForeignKey(t => t.OrganizationId)
                    .OnDelete(DeleteBehavior.Restrict);
 

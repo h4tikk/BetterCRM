@@ -116,15 +116,10 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamptz");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.HasIndex("OrganizationId", "Name")
                         .IsUnique();
@@ -260,9 +255,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("PeriodEnd")
                         .HasColumnType("date");
 
@@ -295,8 +287,6 @@ namespace BetterCRM.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId1");
-
                     b.HasIndex("UserId");
 
                     b.HasIndex("OrganizationId", "UserId", "PeriodStart")
@@ -326,9 +316,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -342,8 +329,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("OrganizationId");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.ToTable("positions", (string)null);
                 });
@@ -366,9 +351,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ShiftId")
                         .HasColumnType("uuid");
 
@@ -384,8 +366,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasColumnType("timestamptz");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.HasIndex("ShiftId");
 
@@ -422,9 +402,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
 
@@ -440,8 +417,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.HasIndex("UserId");
 
@@ -576,9 +551,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<decimal>("OverduePenaltyHours")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
@@ -614,8 +586,6 @@ namespace BetterCRM.DataAccess.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.HasIndex("OrganizationId1");
-
                     b.HasIndex("OrganizationId", "DepartmentId");
 
                     b.HasIndex("OrganizationId", "Status", "CreatedAt");
@@ -638,9 +608,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -659,8 +626,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.HasIndex("TicketId");
 
@@ -692,9 +657,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("TicketId")
                         .HasColumnType("uuid");
 
@@ -705,8 +667,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.HasIndex("TicketId");
 
@@ -754,9 +714,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(512)
@@ -781,8 +738,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.HasIndex("DepartmentEntityId");
 
                     b.HasIndex("DepartmentId");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.HasIndex("PositionEntityId");
 
@@ -813,9 +768,6 @@ namespace BetterCRM.DataAccess.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrganizationId1")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid?>("ShiftId")
                         .HasColumnType("uuid");
 
@@ -829,8 +781,6 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId1");
 
                     b.HasIndex("ShiftId");
 
@@ -869,16 +819,10 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.DepartmentEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("Departments")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Organization");
@@ -922,16 +866,10 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.PayrollRecordEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("PayrollRecords")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.UserEntity", "User")
@@ -952,16 +890,10 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("Positions")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Department");
@@ -971,16 +903,10 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.ShiftBreakEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
+                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany()
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
-                        .WithMany()
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.ShiftEntity", "Shift")
@@ -996,16 +922,10 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.ShiftEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("Shifts")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.UserEntity", "User")
@@ -1093,16 +1013,10 @@ namespace BetterCRM.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("Tickets")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Assignee");
@@ -1114,16 +1028,10 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.TicketParticipantEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("Participants")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.TicketEntity", "Ticket")
@@ -1151,16 +1059,10 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.TimeLogEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("TimeLogs")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.TicketEntity", "Ticket")
@@ -1193,16 +1095,10 @@ namespace BetterCRM.DataAccess.Migrations
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("Users")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.PositionEntity", null)
@@ -1224,16 +1120,10 @@ namespace BetterCRM.DataAccess.Migrations
 
             modelBuilder.Entity("BetterCRM.DataAccess.Entities.WorkSessionEntity", b =>
                 {
-                    b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("BetterCRM.DataAccess.Entities.OrganizationEntity", "Organization")
                         .WithMany("WorkSessions")
-                        .HasForeignKey("OrganizationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BetterCRM.DataAccess.Entities.ShiftEntity", "Shift")

@@ -13,8 +13,8 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(ws => ws.Comment).HasMaxLength(WorkSession.MaxCommentLength);
             builder.HasIndex(ws => new { ws.OrganizationId, ws.UserId, ws.StartedAt });
 
-            builder.HasOne<OrganizationEntity>()
-                .WithMany()
+            builder.HasOne(ws => ws.Organization)
+                .WithMany(o => o.WorkSessions)
                 .HasForeignKey(ws => ws.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
 

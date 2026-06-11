@@ -10,6 +10,10 @@ namespace BetterCRM.Api.Controllers
         Guid? DepartmentId, Guid? AssigneeId);
 
     public record AddParticipantRequest(Guid UserId, string Role);
+    public record TransferTicketRequest(
+        Guid TargetDepartmentId,
+        Guid? TargetAssigneeId,
+        string? Reason);
 
     [Authorize]
     public class TicketsController : BaseApiController
@@ -71,6 +75,19 @@ namespace BetterCRM.Api.Controllers
         public async Task<IActionResult> Close(Guid id)
         {
             await _tickets.CloseAsync(id, UserId);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Admin,OrganizationHead,DepartmentHead")]
+        [HttpPost("{id:guid}/transfer")]
+        public async Task<IActionResult> Transfer(Guid id, [FromBody] TransferTicketRequest req)
+        {
+            await _tickets.TransferAsync(new TransferTicketCommand(
+                id,
+                req.TargetDepartmentId,
+                req.TargetAssigneeId,
+                req.Reason,
+                UserId));
             return NoContent();
         }
 

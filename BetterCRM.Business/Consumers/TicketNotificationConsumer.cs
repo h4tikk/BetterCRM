@@ -30,7 +30,12 @@ namespace BetterCRM.Business.Consumers
             try
             {
                 var recipients = await _notifyRepo.GetTicketRecipientsAsync(
-                    e.TicketId, e.AssigneeId, e.DepartmentId, e.TriggeredByUserId);
+                    e.TicketId,
+                    e.AssigneeId,
+                    e.DepartmentId,
+                    e.TriggeredByUserId,
+                    e.PreviousDepartmentId,
+                    e.PreviousAssigneeId);
 
                 if (recipients.Count == 0) return;
 
@@ -87,6 +92,7 @@ namespace BetterCRM.Business.Consumers
             NotifyType.TicketApproved => $"Тикет подтверждён: {e.TicketTitle}",
             NotifyType.TicketRejected => $"Тикет отклонён: {e.TicketTitle}",
             NotifyType.TicketAssigned => $"Вам назначен тикет: {e.TicketTitle}",
+            NotifyType.TicketTransferred => $"Тикет передан в другой отдел: {e.TicketTitle}",
             NotifyType.TicketResolved => $"Тикет решён: {e.TicketTitle}",
             NotifyType.TicketClosed => $"Тикет закрыт: {e.TicketTitle}",
             NotifyType.CommentAdded => $"Новый комментарий в тикете {e.TicketTitle} \n {e.CommentText}",
@@ -103,6 +109,11 @@ namespace BetterCRM.Business.Consumers
 
             NotifyType.TicketAssigned =>
                 $"Назначил: {e.TriggeredByName}",
+
+            NotifyType.TicketTransferred =>
+                e.CommentText is { Length: > 0 } reason
+                    ? $"Передал: {e.TriggeredByName}. Причина: {reason[..Math.Min(150, reason.Length)]}"
+                    : $"Передал: {e.TriggeredByName}",
 
             _ =>
                 $"Действие выполнил: {e.TriggeredByName}"

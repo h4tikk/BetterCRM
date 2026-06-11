@@ -13,7 +13,7 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(tp => tp.Role).IsRequired().HasMaxLength(30);
             builder.HasIndex(tp => new { tp.OrganizationId, tp.TicketId, tp.UserId }).IsUnique();
 
-            builder.HasOne<OrganizationEntity>().WithMany().HasForeignKey(tp => tp.OrganizationId)
+            builder.HasOne(tp => tp.Organization).WithMany(o => o.Participants).HasForeignKey(tp => tp.OrganizationId)
                    .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(tp => tp.Ticket).WithMany(t => t.Participants).HasForeignKey(tp => tp.TicketId)
                    .OnDelete(DeleteBehavior.Cascade);

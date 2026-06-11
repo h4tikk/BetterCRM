@@ -27,11 +27,12 @@ namespace BetterCRM.Api.Middleware
 
             var (status, code, message) = ex switch
             {
-                NotFoundException e => (404, "NOT_FOUND",      e.Message),
-                ConflictException e => (409, "CONFLICT",        e.Message),
-                UnauthorizedOperationException e=> (403, "FORBIDDEN",       e.Message),
-                DomainException e => (422, "DOMAIN_ERROR",    e.Message),
-                _ => (500, "INTERNAL_ERROR",  "Внутренняя ошибка сервера")
+                NotFoundException e => (404, "NOT_FOUND", e.Message),
+                ConflictException e => (409, "CONFLICT", e.Message),
+                UnauthorizedOperationException e => (403, "FORBIDDEN", e.Message),
+                DomainException e => (422, "DOMAIN_ERROR", e.Message),
+                UnauthorizedAccessException => (401, "UNAUTHORIZED", "Требуется авторизация"),
+                _ => (500, "INTERNAL_ERROR", "Внутренняя ошибка сервера")
             };
 
             ctx.Response.StatusCode = status;

@@ -1,4 +1,5 @@
-﻿using BetterCRM.DataAccess.Entities;
+﻿using BetterCRM.Core.Interfaces.Services;
+using BetterCRM.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -7,7 +8,13 @@ namespace BetterCRM.DataAccess
     public class ApplicationDbContext : DbContext
     {
         public Guid CurrentOrganizationId { get; set; }
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            ICurrentUserProvider? currentUser = null) : base(options)
+        {
+            CurrentOrganizationId = currentUser?.GetCurrent()?.OrganizationId ?? Guid.Empty;
+        }
 
         public DbSet<OrganizationEntity> Organizations => Set<OrganizationEntity>();
         public DbSet<DepartmentEntity> Departments => Set<DepartmentEntity>();

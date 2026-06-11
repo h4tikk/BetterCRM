@@ -23,11 +23,11 @@ namespace BetterCRM.Api.Controllers
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
-        { 
+        {
             var result = await _auth.LoginAsync(new LoginCommand(req.Email, req.Password));
             return Ok(new
             {
-                token = result!.Token,
+                token = result.Token,
                 userId = result.User.Id,
                 fullName = result.User.FullName,
                 role = result.User.Role,
@@ -35,7 +35,6 @@ namespace BetterCRM.Api.Controllers
                 departmentId = result.User.DepartmentId,
                 isMainDirector = result.User.IsMainDirector,
             });
-
         }
 
         [AllowAnonymous]
@@ -43,7 +42,7 @@ namespace BetterCRM.Api.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterRequest req)
         {
             var res = await _auth.RegisterAsync(new RegisterCommand(
-                req.OrganizationName, req.FullName, req.Email, req.Password,req.PositionTitle));
+                req.OrganizationName, req.FullName, req.Email, req.Password, req.PositionTitle));
             return Ok(new
             {
                 token = res.Token,
@@ -57,11 +56,11 @@ namespace BetterCRM.Api.Controllers
 
         [Authorize]
         [HttpGet("me")]
-        public Task<IActionResult> Me([FromServices] ICurrentUserProvider up)
+        public IActionResult Me()
         {
             var user = _currentUser.GetCurrent();
-            if (user == null) return Task.FromResult<IActionResult>(Unauthorized());
-            return Task.FromResult<IActionResult>(Ok(user));
+            if (user == null) return Unauthorized();
+            return Ok(user);
         }
     }
 }

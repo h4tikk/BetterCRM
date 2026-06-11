@@ -6,6 +6,7 @@
         TicketApproved,
         TicketRejected,
         TicketAssigned,
+        TicketTransferred,
         TicketResolved,
         TicketClosed,
         CommentAdded,

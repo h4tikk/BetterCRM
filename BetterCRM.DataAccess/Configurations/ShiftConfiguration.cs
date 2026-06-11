@@ -19,8 +19,8 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(s => s.EarlyLeavePenaltyHours)
                    .HasColumnType("decimal(5,2)").HasDefaultValue(0m);
 
-            builder.HasOne<OrganizationEntity>()
-                   .WithMany()
+            builder.HasOne(s => s.Organization)
+                   .WithMany(o => o.Shifts)
                    .HasForeignKey(s => s.OrganizationId)
                    .OnDelete(DeleteBehavior.Restrict);
 

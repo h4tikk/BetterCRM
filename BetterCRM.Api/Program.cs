@@ -67,7 +67,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ClockSkew = TimeSpan.Zero 
+            ClockSkew = TimeSpan.Zero
+        };
+
+        opt.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                var accessToken = ctx.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    ctx.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    ctx.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -79,7 +93,7 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
-        cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
+        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
         {
             h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
@@ -118,7 +132,7 @@ builder.Services.AddSingleton<IMinioClient>(sp =>
 builder.Services.AddScoped<IFileStorageService, MinioStorageService>();
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
 builder.Services.AddOpenApi();
 
 
@@ -151,6 +165,7 @@ app.UseHttpsRedirection();
 app.UseCors("SignalRPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<OrganizationMiddleware>();
 
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<NotificationHub>("/hubs/notifications");

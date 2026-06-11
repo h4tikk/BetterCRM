@@ -16,7 +16,7 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(b => b.EndTime).HasColumnType("time");
             builder.HasIndex(b => new { b.OrganizationId, b.ShiftId });
 
-            builder.HasOne<OrganizationEntity>()
+            builder.HasOne(b => b.Organization)
                    .WithMany()
                    .HasForeignKey(b => b.OrganizationId)
                    .OnDelete(DeleteBehavior.Restrict);

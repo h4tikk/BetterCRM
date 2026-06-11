@@ -6,7 +6,7 @@
     public record AuthResult(CurrentUserInfo User, string Token);
     public interface IAuthService
     {
-        Task<AuthResult?> LoginAsync(LoginCommand command);
+        Task<AuthResult> LoginAsync(LoginCommand command);
         Task<AuthResult> RegisterAsync(RegisterCommand command);
     }
 }

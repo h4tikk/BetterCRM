@@ -1,5 +1,6 @@
 ﻿using BetterCRM.Business.Exceptions;
 using BetterCRM.Business.Helpers;
+using BetterCRM.Core.Constants;
 using BetterCRM.Core.Interfaces.Repositories;
 using BetterCRM.Core.Interfaces.Services;
 using BetterCRM.Core.Models;
@@ -22,27 +23,25 @@ namespace BetterCRM.Business.Services
             _jwt = jwt;
         }
 
-        public async Task<AuthResult?> LoginAsync(LoginCommand command)
+        public async Task<AuthResult> LoginAsync(LoginCommand command)
         {
             var user = await _userRepo.GetByEmailAsync(command.Email)
                 ?? throw new UnauthorizedOperationException("Неверный email или пароль");
 
-            if(!user.VerifyPassword(command.Password))
-            {
+            if (!user.VerifyPassword(command.Password))
                 throw new UnauthorizedOperationException("Неверный email или пароль");
-            }
-            if(!user.IsActive)
+
+            if (!user.IsActive)
                 throw new UnauthorizedOperationException("Учётная запись заблокирована");
 
             var org = await _orgRepo.GetByIdAsync(user.OrganizationId);
             var info = BuildUserInfo(user, org);
 
             return new AuthResult(info, _jwt.GenerateToken(info));
-
         }
 
         private CurrentUserInfo BuildUserInfo(User user, Organization? org) =>
-            new(user.Id, user.Email, user.FullName, user.Role, user.OrganizationId,user.DepartmentId, org?.IsMainDirector(user.Id) ?? false );
+            new(user.Id, user.Email, user.FullName, user.Role, user.OrganizationId, user.DepartmentId, org?.IsMainDirector(user.Id) ?? false);
 
         public async Task<AuthResult> RegisterAsync(RegisterCommand command)
         {
@@ -50,19 +49,21 @@ namespace BetterCRM.Business.Services
                 throw new ConflictException("Пользователь с таким email уже существует");
 
             var (org, orgErr) = Organization.Create(command.OrganizationName);
-            if (org is null) throw new InvalidOperationException(orgErr!);
+            if (org is null) throw new DomainException(orgErr!);
+
+            if (await _orgRepo.GetBySlugAsync(org.Slug) is not null)
+                throw new ConflictException("Организация с таким названием уже существует");
+
+            var (position, posErr) = Position.Create(org.Id, command.PositionTitle, 0, 8);
+            if (position is null) throw new DomainException(posErr!);
+
+            var (user, userErr) = User.Create(org.Id, command.Email, command.Password,
+                command.FullName, Roles.OrganizationHead, position.Id, null);
+            if (user is null) throw new DomainException(userErr!);
 
             var savedOrg = await _orgRepo.AddAsync(org)
                 ?? throw new InvalidOperationException("Не удалось сохранить организацию");
-
-            var (position, posErr) = Position.Create(savedOrg.Id, command.PositionTitle, 0, 8);
-            if (position is null) throw new InvalidOperationException(posErr!);
-            var savedPos = await _positionRepo.AddAsync(position);
-
-            var (user, userErr) = User.Create(savedOrg.Id, command.Email, command.Password,
-                command.FullName, "OrganizationHead", savedPos.Id, null);
-            if (user is null) throw new InvalidOperationException(userErr!);
-
+            await _positionRepo.AddAsync(position);
             var savedUser = await _userRepo.AddAsync(user);
 
             savedOrg.AssignMainDirector(savedUser.Id);

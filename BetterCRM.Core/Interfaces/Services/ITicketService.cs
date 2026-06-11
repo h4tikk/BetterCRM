@@ -7,6 +7,13 @@ namespace BetterCRM.Core.Interfaces.Services
         string Title, string? Description, TicketPriority Priority,
         Guid CreatorId, Guid? DepartmentId, Guid? AssigneeId);
 
+    public record TransferTicketCommand(
+        Guid TicketId,
+        Guid TargetDepartmentId,
+        Guid? TargetAssigneeId,
+        string? Reason,
+        Guid RequesterId);
+
     public interface ITicketService
     {
         Task<Ticket> CreateAsync(CreateTicketCommand cmd);
@@ -19,6 +26,7 @@ namespace BetterCRM.Core.Interfaces.Services
 
         Task ResolveAsync(Guid ticketId, Guid resolverId);
         Task CloseAsync(Guid ticketId, Guid closerId);
+        Task TransferAsync(TransferTicketCommand cmd);
 
         Task AddParticipantAsync(Guid ticketId, Guid userId, string role, Guid requesterId);
         Task RemoveParticipantAsync(Guid ticketId, Guid userId, Guid requesterId);

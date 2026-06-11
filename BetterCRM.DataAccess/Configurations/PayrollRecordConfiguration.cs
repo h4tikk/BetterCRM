@@ -30,8 +30,8 @@ namespace BetterCRM.DataAccess.Configurations
 
             builder.HasIndex(pr => new { pr.OrganizationId, pr.UserId, pr.PeriodStart }).IsUnique();
 
-            builder.HasOne<OrganizationEntity>()
-                   .WithMany()
+            builder.HasOne(pr => pr.Organization)
+                   .WithMany(o => o.PayrollRecords)
                    .HasForeignKey(pr => pr.OrganizationId)
                    .OnDelete(DeleteBehavior.Restrict);
 
@@ -43,7 +43,6 @@ namespace BetterCRM.DataAccess.Configurations
             builder.Property(pr => pr.PeriodStart).HasColumnType("date");
             builder.Property(pr => pr.PeriodEnd).HasColumnType("date");
             builder.Property(pr => pr.CreatedAt).HasColumnType("timestamptz");
-            // ✅ НОВОЕ: UpdatedAt отсутствовал в оригинале
             builder.Property(pr => pr.UpdatedAt).HasColumnType("timestamptz");
         }
     }

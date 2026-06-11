@@ -110,6 +110,25 @@ namespace BetterCRM.Core.Models
             MarkAsUpdated();
         }
 
+        public void TransferToDepartment(Guid targetDepartmentId, Guid? targetAssigneeId)
+        {
+            if (targetDepartmentId == Guid.Empty)
+                throw new InvalidOperationException("Некорректный отдел");
+
+            if (Status is TicketStatus.Resolved or TicketStatus.Closed)
+                throw new InvalidOperationException("Нельзя передать решённый или закрытый тикет");
+
+            DepartmentId = targetDepartmentId;
+            AssigneeId = targetAssigneeId;
+
+            if (Status == TicketStatus.InProgress && !targetAssigneeId.HasValue)
+                Status = TicketStatus.Open;
+            else if (Status == TicketStatus.Open && targetAssigneeId.HasValue)
+                Status = TicketStatus.InProgress;
+
+            MarkAsUpdated();
+        }
+
         public void Resolve()
         {
             if (Status is TicketStatus.Resolved or TicketStatus.Closed)

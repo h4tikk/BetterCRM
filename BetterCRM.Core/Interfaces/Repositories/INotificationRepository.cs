@@ -14,6 +14,8 @@ namespace BetterCRM.Core.Interfaces.Repositories
             Guid ticketId,
             Guid? assigneeId,
             Guid departmentId,
-            Guid excludeUserId);
+            Guid excludeUserId,
+            Guid? previousDepartmentId = null,
+            Guid? previousAssigneeId = null);
     }
 }

@@ -48,6 +48,7 @@ namespace BetterCRM.DataAccess.Repositories
 
         public async Task<int> GetUnreadCountAsync(Guid userId) =>
             await _dbSet
+                .IgnoreQueryFilters()
                 .CountAsync(n => n.UserId == userId && !n.IsRead);
 
         public async Task MarkAsReadAsync(Guid notificationId, Guid userId) =>
@@ -61,11 +62,17 @@ namespace BetterCRM.DataAccess.Repositories
                 .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
 
         public async Task<List<Guid>> GetTicketRecipientsAsync(
-            Guid ticketId, Guid? assigneeId, Guid departmentId, Guid excludeUserId)
+            Guid ticketId,
+            Guid? assigneeId,
+            Guid departmentId,
+            Guid excludeUserId,
+            Guid? previousDepartmentId = null,
+            Guid? previousAssigneeId = null)
         {
             var recipients = new HashSet<Guid>();
 
             var creatorId = await _context.Tickets
+                .IgnoreQueryFilters()
                 .Where(t => t.Id == ticketId)
                 .Select(t => (Guid?)t.CreatorId)
                 .FirstOrDefaultAsync();
@@ -76,21 +83,43 @@ namespace BetterCRM.DataAccess.Repositories
             if (assigneeId.HasValue)
                 recipients.Add(assigneeId.Value);
 
-            var heads = await _context.Users
-                .Where(u => u.DepartmentId == departmentId &&
-                            u.Role == "DepartmentHead" &&
-                            u.IsActive)
-                .Select(u => u.Id)
-                .ToListAsync();
+            if (previousAssigneeId.HasValue)
+                recipients.Add(previousAssigneeId.Value);
 
-            foreach (var id in heads) recipients.Add(id);
+            if (departmentId != Guid.Empty)
+            {
+                var heads = await _context.Users
+                    .IgnoreQueryFilters()
+                    .Where(u => u.DepartmentId == departmentId &&
+                                u.Role == "DepartmentHead" &&
+                                u.IsActive)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                foreach (var id in heads) recipients.Add(id);
+            }
+
+            if (previousDepartmentId.HasValue && previousDepartmentId.Value != Guid.Empty)
+            {
+                var previousHeads = await _context.Users
+                    .IgnoreQueryFilters()
+                    .Where(u => u.DepartmentId == previousDepartmentId.Value &&
+                                u.Role == "DepartmentHead" &&
+                                u.IsActive)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                foreach (var id in previousHeads) recipients.Add(id);
+            }
 
             var orgId = await _context.Tickets
+                .IgnoreQueryFilters()
                 .Where(t => t.Id == ticketId)
                 .Select(t => t.OrganizationId)
                 .FirstOrDefaultAsync();
 
             var admins = await _context.Users
+                .IgnoreQueryFilters()
                 .Where(u => u.OrganizationId == orgId &&
                             u.Role == "Admin" &&
                             u.IsActive)

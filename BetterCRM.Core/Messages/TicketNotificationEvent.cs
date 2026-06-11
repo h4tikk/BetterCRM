@@ -10,6 +10,8 @@
     Guid? AssigneeId,
     Guid DepartmentId,
     string? CommentText,
-    DateTime OccurredAt
+    DateTime OccurredAt,
+    Guid? PreviousDepartmentId = null,
+    Guid? PreviousAssigneeId = null
     );
 }

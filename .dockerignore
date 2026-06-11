@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+**/.idea/
+frontend/
+Dockerfile
+docker-compose.yml
+*.md
