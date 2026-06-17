@@ -1,183 +1,181 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using BetterCRM.Core.Extensions;
 
 namespace BetterCRM.Core.Models
 {
-    public class Ticket : BaseEntity
+    public class Ticket : TenantEntity
     {
-        public string Title { get; private set; } = string.Empty;
-        public string? Description { get; private set; }
-        public string Priority { get; private set; } = string.Empty; 
-        public string Status { get; private set; } = string.Empty;  
-        public Guid CreatorId { get; private set; }
-        public Guid? AssigneeId { get; private set; }
-        public DateTime? ResolvedAt { get; private set; }
-        public decimal SLATargetHours { get; private set; }
-        public bool IsSLABreached { get; private set; }
+        public string Title { get; internal set; } = string.Empty;
+        public string? Description { get; internal set; }
 
-        public User Creator { get; private set; } = null!;
-        public User? Assignee { get; private set; }
-        public ICollection<TicketParticipant> Participants { get; private set; } = new List<TicketParticipant>();
-        public ICollection<WorkSession> WorkSessions { get; private set; } = new List<WorkSession>();
+
+        public TicketPriority Priority { get; internal set; }
+        public TicketStatus Status { get; internal set; } = TicketStatus.Draft;
+
+        public Guid CreatorId { get; internal set; }
+        public Guid? AssigneeId { get; internal set; }
+
+        public Guid? DepartmentId { get; internal set; }
+
+        public DateTime? ResolvedAt { get; internal set; }
+
+        public DateTime? ClosedAt { get; internal set; }
+
+        public decimal SLATargetHours { get; internal set; }
+        public bool IsSLABreached { get; internal set; }
+
+        public decimal OverduePenaltyHours { get; internal set; } = 0;
+
+        public User Creator { get; internal set; } = null!;
+        public User? Assignee { get; internal set; }
+        public ICollection<TicketParticipant> Participants { get; internal set; } = new List<TicketParticipant>();
+        public ICollection<TimeLog> TimeLogs { get; internal set; } = new List<TimeLog>();
 
         public const int MinTitleLength = 1;
         public const int MaxTitleLength = 200;
         public const int MaxDescriptionLength = 1000;
-        public static readonly string[] ValidPriorities = { "High", "Medium", "Low" };
-        public static readonly string[] ValidStatuses = { "Open", "InProgress", "Resolved", "Closed" };
-        public static readonly Dictionary<string, decimal> DefaultSLATargets = new()
-    {
-        { "High", 4 }, { "Medium", 8 }, { "Low", 24 }
-    };
+
+        public static readonly Dictionary<TicketPriority, decimal> DefaultSLATargets = new()
+        {
+            [TicketPriority.High] = 4,
+            [TicketPriority.Medium] = 8,
+            [TicketPriority.Low] = 24
+        };
+
+        public static readonly Dictionary<TicketPriority, decimal> OverduePenalties = new()
+        {
+            [TicketPriority.High] = 2,
+            [TicketPriority.Medium] = 1,
+            [TicketPriority.Low] = 0.5m
+        };
 
         private Ticket() { }
 
         public static (Ticket? ticket, string? error) Create(
-            string title,
-            string? description,
-            string priority,
-            Guid creatorId,
-            Guid? assigneeId = null,
+            Guid organizationId, string title, string? description,
+            TicketPriority priority, Guid creatorId,
+            Guid? departmentId = null, Guid? assigneeId = null,
             decimal? slaTargetHours = null)
         {
             title = title?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(title) || title.Length < MinTitleLength || title.Length > MaxTitleLength)
-                return (null, $"Заголовок должен содержать от {MinTitleLength} до {MaxTitleLength} символов");
-
+                return (null, $"Заголовок от {MinTitleLength} до {MaxTitleLength} символов");
             if (!string.IsNullOrWhiteSpace(description) && description.Length > MaxDescriptionLength)
-                return (null, $"Описание не может превышать {MaxDescriptionLength} символов");
-
-            priority = priority.Trim();
-            if (!ValidPriorities.Contains(priority))
-                return (null, $"Недопустимый приоритет. Доступные: {string.Join(", ", ValidPriorities)}");
-
+                return (null, $"Описание максимум {MaxDescriptionLength} символов");
             if (creatorId == Guid.Empty)
-                return (null, "Некорректный ID создателя");
+                return (null, "Некорректный создатель");
 
-            var targetHours = slaTargetHours ?? DefaultSLATargets.GetValueOrDefault(priority, 8);
-            if (targetHours <= 0 || targetHours > 168) 
-                return (null, "SLA target должен быть от 1 до 168 часов");
+            var target = slaTargetHours ?? DefaultSLATargets[priority];
 
             return (new Ticket
             {
                 Id = Guid.NewGuid(),
+                OrganizationId = organizationId,
                 Title = title,
                 Description = description?.Trim(),
                 Priority = priority,
-                Status = "Open",
+                Status = TicketStatus.Draft,
                 CreatorId = creatorId,
+                DepartmentId = departmentId,
                 AssigneeId = assigneeId,
-                SLATargetHours = targetHours,
+                SLATargetHours = target,
                 IsSLABreached = false,
                 CreatedAt = DateTime.UtcNow
             }, null);
         }
 
+        public void Approve()
+        {
+            if (Status != TicketStatus.Draft)
+                throw new InvalidOperationException("Одобрить можно только черновик");
+            Status = TicketStatus.Open;
+            MarkAsUpdated();
+        }
+
+        public void Reject()
+        {
+            if (Status != TicketStatus.Draft)
+                throw new InvalidOperationException("Отклонить можно только черновик");
+            Status = TicketStatus.Closed;
+            ClosedAt = DateTime.UtcNow;
+            MarkAsUpdated();
+        }
 
         public void AssignTo(Guid? assigneeId)
         {
-            if (Status != "Open" && Status != "InProgress")
+            if (Status != TicketStatus.Open && Status != TicketStatus.InProgress)
                 throw new InvalidOperationException("Нельзя назначить тикет в текущем статусе");
-
             AssigneeId = assigneeId;
-            if (assigneeId.HasValue && Status == "Open")
-                Status = "InProgress";
-
+            if (assigneeId.HasValue && Status == TicketStatus.Open)
+                Status = TicketStatus.InProgress;
             MarkAsUpdated();
         }
 
-        public void ChangePriority(string newPriority)
+        public void TransferToDepartment(Guid targetDepartmentId, Guid? targetAssigneeId)
         {
-            if (!ValidPriorities.Contains(newPriority))
-                throw new InvalidOperationException($"Недопустимый приоритет: {newPriority}");
+            if (targetDepartmentId == Guid.Empty)
+                throw new InvalidOperationException("Некорректный отдел");
 
-            Priority = newPriority;
-            SLATargetHours = DefaultSLATargets.GetValueOrDefault(newPriority, 8);
-            CheckSLA(); 
-            MarkAsUpdated();
-        }
+            if (Status is TicketStatus.Resolved or TicketStatus.Closed)
+                throw new InvalidOperationException("Нельзя передать решённый или закрытый тикет");
 
-        public void ChangeStatus(string newStatus)
-        {
-            if (!ValidStatuses.Contains(newStatus))
-                throw new InvalidOperationException($"Недопустимый статус: {newStatus}");
+            DepartmentId = targetDepartmentId;
+            AssigneeId = targetAssigneeId;
 
-            if (Status == "Resolved" && newStatus != "Closed")
-                throw new InvalidOperationException("Решённый тикет можно только закрыть");
-
-            if (Status == "Closed")
-                throw new InvalidOperationException("Закрытый тикет нельзя изменить");
-
-            Status = newStatus;
-
-            if (newStatus == "Resolved" && ResolvedAt == null)
-            {
-                ResolvedAt = DateTime.UtcNow;
-                CheckSLA();
-            }
+            if (Status == TicketStatus.InProgress && !targetAssigneeId.HasValue)
+                Status = TicketStatus.Open;
+            else if (Status == TicketStatus.Open && targetAssigneeId.HasValue)
+                Status = TicketStatus.InProgress;
 
             MarkAsUpdated();
         }
 
         public void Resolve()
         {
-            if (Status is "Resolved" or "Closed")
+            if (Status is TicketStatus.Resolved or TicketStatus.Closed)
                 throw new InvalidOperationException($"Тикет уже в статусе {Status}");
-
             ResolvedAt = DateTime.UtcNow;
-            Status = "Resolved";
+            Status = TicketStatus.Resolved;
             CheckSLA();
             MarkAsUpdated();
         }
 
         public void Close()
         {
-            if (Status != "Resolved")
+            if (Status != TicketStatus.Resolved)
                 throw new InvalidOperationException("Закрыть можно только решённый тикет");
-
-            Status = "Closed";
+            Status = TicketStatus.Closed;
+            ClosedAt = DateTime.UtcNow;
             MarkAsUpdated();
         }
 
         public void Reopen()
         {
-            if (Status != "Resolved" && Status != "Closed")
-                throw new InvalidOperationException("Переокрыть можно только решённый/закрытый тикет");
-
-            Status = "InProgress";
+            if (Status is not TicketStatus.Resolved and not TicketStatus.Closed)
+                throw new InvalidOperationException("Переоткрыть можно только решённый/закрытый тикет");
+            Status = TicketStatus.InProgress;
             ResolvedAt = null;
+            ClosedAt = null;
             IsSLABreached = false;
             MarkAsUpdated();
         }
 
         public void CheckSLA()
         {
-            if (Status == "Resolved" && ResolvedAt.HasValue)
-            {
-                var elapsedHours = (ResolvedAt.Value - CreatedAt).TotalHours;
-                IsSLABreached = elapsedHours > (double)SLATargetHours;
-            }
-            else if (Status is "Open" or "InProgress")
-            {
-                var elapsedHours = (DateTime.UtcNow - CreatedAt).TotalHours;
-                IsSLABreached = elapsedHours > (double)SLATargetHours;
-            }
+            var elapsed = (ResolvedAt ?? DateTime.UtcNow) - CreatedAt;
+            IsSLABreached = elapsed.TotalHours > (double)SLATargetHours;
         }
 
-        public bool CanBeModifiedBy(User user)
+        public void ApplyOverduePenalty()
         {
-            return user.Role == "Admin" ||
-                   user.Id == CreatorId ||
-                   user.Id == AssigneeId ||
-                   (user.Role == "DepartmentHead" && user.DepartmentId == Assignee?.DepartmentId);
+            if (!IsSLABreached)
+                throw new InvalidOperationException("SLA не нарушен — штраф начислять не нужно");
+            if (OverduePenaltyHours > 0)
+                throw new InvalidOperationException("Штраф уже начислен");
+            OverduePenaltyHours = OverduePenalties[Priority];
+            MarkAsUpdated();
         }
 
-        public TimeSpan GetElapsedTime() =>
-            ResolvedAt.HasValue ? ResolvedAt.Value - CreatedAt : DateTime.UtcNow - CreatedAt;
-
-        public decimal GetElapsedHours() => (decimal)GetElapsedTime().TotalHours;
-
-        public bool IsOverdue() => GetElapsedHours() > SLATargetHours && Status is "Open" or "InProgress";
+        public decimal GetTotalLoggedHours() =>
+            TimeLogs.Sum(tl => tl.DurationHours);
     }
 }

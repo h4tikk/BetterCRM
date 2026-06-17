@@ -1,0 +1,135 @@
+﻿using BetterCRM.Core.Extensions;
+using BetterCRM.Core.Interfaces.Repositories;
+using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace BetterCRM.DataAccess.Repositories
+{
+    public class TicketRepository : Repository<Ticket, TicketEntity>, ITicketRepository
+    {
+        public TicketRepository(ApplicationDbContext context) : base(context) { }
+
+        protected override Ticket MapToDomain(TicketEntity db) => DomainMapper.ToTicketDomain(db);
+        protected override TicketEntity MapToDb(Ticket domain, TicketEntity? existing = null) => DomainMapper.ToTicketDb(domain, existing);
+
+        private IQueryable<TicketEntity> BaseQuery =>
+            _dbSet.Include(t => t.Creator).Include(t => t.Assignee).Include(t => t.Participants);
+
+        public async Task<List<Ticket>> GetForUsersAsync(Guid userId, string role, Guid? departmentId)
+        {
+            IQueryable<TicketEntity> q = BaseQuery;
+
+            if (role == "Admin" || role == "OrganizationHead")
+            {
+               
+            }
+            else if (role == "DepartmentHead" && departmentId.HasValue)
+            {
+                var deptUserIds = await _context.Users
+                    .Where(u => u.DepartmentId == departmentId.Value)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                q = q.Where(t =>
+                    t.DepartmentId == departmentId.Value ||
+                    deptUserIds.Contains(t.CreatorId) ||
+                    (t.AssigneeId.HasValue && deptUserIds.Contains(t.AssigneeId.Value)));
+            }
+            else
+            {
+                var participatingIds = await _context.TicketParticipants
+                    .Where(tp => tp.UserId == userId)
+                    .Select(tp => tp.TicketId)
+                    .ToListAsync();
+
+                q = q.Where(t =>
+                    t.CreatorId == userId ||
+                    t.AssigneeId == userId ||
+                    participatingIds.Contains(t.Id));
+
+
+                q = q.Where(t => !(t.Status == "Draft" && t.CreatorId != userId));
+            }
+
+            return (await q.OrderByDescending(t => t.CreatedAt).ToListAsync())
+                .Select(MapToDomain).ToList();
+        }
+
+        public async Task<List<Ticket>> GetOverdueWithoutPenaltyAsync()
+        {
+            var now = DateTime.UtcNow;
+            var candidates = await BaseQuery
+                .Where(t =>
+                    (t.Status == "Open" || t.Status == "InProgress") &&
+                    !t.IsSLABreached &&
+                    t.OverduePenaltyHours == 0)
+                .ToListAsync();
+
+            return candidates
+                .Where(t => (now - t.CreatedAt).TotalHours > (double)t.SLATargetHours)
+                .Select(MapToDomain).ToList();
+        }
+
+        public async Task<List<Ticket>> GetOverdueAsync()
+        {
+            var list = await _context.Tickets
+                        .Where(t =>
+                            t.Status != "Resolved" &&
+                            t.Status != "Closed" &&
+                            t.OverduePenaltyHours == 0 &&
+                            t.CreatedAt.AddHours((double)t.SLATargetHours) < DateTime.UtcNow)
+                        .ToListAsync();
+            return list.Select(MapToDomain).ToList();
+        }
+
+        public async Task<List<Ticket>> SearchAsync(string searchTerm)
+        {
+            var list = await BaseQuery
+                .Where(t => t.Title.Contains(searchTerm) ||
+                            (t.Description != null && t.Description.Contains(searchTerm)))
+                .ToListAsync();
+            return list.Select(MapToDomain).ToList();
+        }
+
+        public async Task<Dictionary<string, int>> GetCountByStatusAsync(Guid? departmentId = null)
+        {
+            IQueryable<TicketEntity> q = _dbSet;
+            if (departmentId.HasValue)
+            {
+                var ids = await _context.Users
+                    .Where(u => u.DepartmentId == departmentId.Value)
+                    .Select(u => u.Id).ToListAsync();
+
+                q = q.Where(t =>
+                    t.DepartmentId == departmentId.Value ||
+                    ids.Contains(t.CreatorId) ||
+                    (t.AssigneeId.HasValue && ids.Contains(t.AssigneeId.Value)));
+            }
+            return await q.GroupBy(t => t.Status).ToDictionaryAsync(g => g.Key.ToString(), g => g.Count());
+        }
+
+        public async Task<decimal> GetTicketPenaltyHoursAsync(Guid userId, DateTime from, DateTime to) =>
+            await _dbSet
+                .Where(t =>
+                    (t.AssigneeId == userId || t.CreatorId == userId) &&
+                    t.IsSLABreached &&
+                    t.OverduePenaltyHours > 0 &&
+                    t.CreatedAt >= from && t.CreatedAt <= to)
+                .SumAsync(t => t.OverduePenaltyHours);
+
+        public async Task<Ticket?> GetByAssigneeAndIdAsync(Guid assigneeId, Guid id)
+        {
+            var db = await _dbSet
+                .Include(t => t.Assignee)
+                .Include(t => t.Creator)
+                .Include(t => t.Participants)
+                .ThenInclude(p => p.User)   
+                .Include(t => t.TimeLogs)
+                .FirstOrDefaultAsync(t => t.AssigneeId == assigneeId && t.Id == id);
+
+            return db != null ? MapToDomain(db) : null;
+        }
+    }
+
+}

@@ -1,0 +1,76 @@
+﻿using BetterCRM.Core.Interfaces.Repositories;
+using BetterCRM.Core.Models;
+using BetterCRM.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace BetterCRM.DataAccess.Repositories
+{
+    public class ShiftRepository : Repository<Shift, ShiftEntity>, IShiftRepository
+    {
+        public ShiftRepository(ApplicationDbContext context) : base(context) { }
+
+        protected override Shift MapToDomain(ShiftEntity db) => DomainMapper.ToShiftDomain(db);
+        protected override ShiftEntity MapToDb(Shift domain, ShiftEntity? existing = null) => DomainMapper.ToShiftDb(domain, existing);
+
+        public async Task<List<Shift>> GetByUserAsync(Guid userId, DateTime? from = null, DateTime? to = null)
+        {
+            IQueryable<ShiftEntity> q = _dbSet.Where(s => s.UserId == userId);
+            if (from.HasValue) q = q.Where(s => s.Date >= from.Value);
+            if (to.HasValue) q = q.Where(s => s.Date <= to.Value);
+            return (await q.OrderBy(s => s.Date).ToListAsync()).Select(MapToDomain).ToList();
+        }
+
+        public async Task<List<Shift>> GetByDepartmentAsync(Guid departmentId, DateTime from, DateTime to)
+        {
+            var userIds = await _context.Users
+                .Where(u => u.DepartmentId == departmentId)
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            return (await _dbSet
+                .Where(s => userIds.Contains(s.UserId) && s.Date >= from && s.Date <= to)
+                .OrderBy(s => s.Date)
+                .ToListAsync()).Select(MapToDomain).ToList();
+        }
+
+        public async Task<List<Shift>> GetForOrganizationAsync(Guid orgId, DateTime from, DateTime to)
+        {
+            return (await _dbSet
+                .Include(s => s.User)
+                .Where(s => s.Date >= from && s.Date <= to)
+                .OrderBy(s => s.Date).ThenBy(s => s.User.DepartmentId)
+                .ToListAsync()).Select(MapToDomain).ToList();
+        }
+
+        public async Task<Shift?> GetByUserAndDateAsync(Guid userId, DateTime date)
+        {
+            var db = await _dbSet.FirstOrDefaultAsync(s => s.UserId == userId && s.Date == date.Date);
+            return db != null ? MapToDomain(db) : null;
+        }
+
+        public async Task<Shift?> GetWithBreaksAsync(Guid shiftId)
+        {
+            var db = await _dbSet.Include(s => s.Breaks).FirstOrDefaultAsync(s => s.Id == shiftId);
+            return db != null ? MapToDomain(db) : null;
+        }
+
+        public async Task<decimal> GetTotalScheduledHoursAsync(Guid userId, DateTime from, DateTime to)
+        {
+            var gross = await _dbSet
+                .Where(s => s.UserId == userId && s.Date >= from && s.Date <= to)
+                .SumAsync(s => (decimal)(s.EndTime - s.StartTime).TotalHours);
+
+            var unpaidBreaks = await _context.ShiftBreaks
+                .Where(b => !b.IsPaid && b.Shift.UserId == userId && b.Shift.Date >= from && b.Shift.Date <= to)
+                .SumAsync(b => (decimal)(b.EndTime - b.StartTime).TotalHours);
+
+            return gross - unpaidBreaks;
+        }
+
+
+        public async Task<decimal> GetTotalAttendancePenaltyAsync(Guid userId, DateTime from, DateTime to) =>
+            await _dbSet
+                .Where(s => s.UserId == userId && s.Date >= from && s.Date <= to)
+                .SumAsync(s => s.LatenessPenaltyHours + s.EarlyLeavePenaltyHours);
+    }
+}

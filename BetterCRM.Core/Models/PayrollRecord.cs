@@ -1,76 +1,96 @@
-﻿namespace BetterCRM.Core.Models
+using BetterCRM.Core.Extensions;
+
+namespace BetterCRM.Core.Models
 {
-    public class PayrollRecord : BaseEntity
+    public class PayrollRecord : TenantEntity
     {
-        public Guid UserId { get; private set; }
-        public DateTime PeriodStart { get; private set; }
-        public DateTime PeriodEnd { get; private set; }
-        public decimal TotalHours { get; private set; }
-        public decimal HourlyRate { get; private set; }
-        public decimal CalculatedSalary { get; private set; }
-        public string Status { get; private set; } = string.Empty;
+        public Guid UserId { get; internal set; }
+        public DateTime PeriodStart { get; internal set; }
+        public DateTime PeriodEnd { get; internal set; }
 
-        public User User { get; private set; } = null!;
+        public decimal ScheduledHours { get; internal set; }
+        public decimal ActualHours { get; internal set; }
 
-        public static readonly string[] ValidStatuses = { "Calculated", "Approved", "Paid" };
-        public const decimal MinHourlyRate = 0;
-        public const decimal MaxHourlyRate = 10000;
-        public const decimal MinTotalHours = 0;
-        public const decimal MaxTotalHours = 744;
+        public decimal AttendancePenaltyHours { get; internal set; }  
+        public decimal TicketPenaltyHours { get; internal set; }       
+        public decimal TotalPenaltyHours { get; internal set; }    
+
+        public decimal FinalBillableHours { get; internal set; }    
+        public decimal HourlyRate { get; internal set; }
+        public decimal CalculatedSalary { get; internal set; }
+
+        public PayrollStatus Status { get; internal set; } = PayrollStatus.Calculated;
+
+        public User User { get; internal set; } = null!;
 
         private PayrollRecord() { }
 
-        public static (PayrollRecord? record, string? error) Create(
-            Guid userId,
-            DateTime periodStart,
-            DateTime periodEnd,
-            decimal totalHours,
-            decimal hourlyRate)
+        public static (PayrollRecord? rec, string? error) Create(
+            Guid organizationId, Guid userId,
+            DateTime periodStart, DateTime periodEnd,
+            decimal scheduled, decimal actual,
+            decimal attendancePenalty, decimal ticketPenalty,
+            decimal rate)
         {
             if (userId == Guid.Empty)
-                return (null, "Некорректный ID пользователя");
-
+                return (null, "Некорректный пользователь");
             if (periodStart >= periodEnd)
-                return (null, "Период должен быть корректным (start < end)");
+                return (null, "Дата начала периода должна быть раньше даты окончания");
+            if (rate <= 0)
+                return (null, "Ставка должна быть больше нуля");
 
-            if (totalHours < MinTotalHours || totalHours > MaxTotalHours)
-                return (null, $"Отработано часов должно быть от {MinTotalHours} до {MaxTotalHours}");
-
-            if (hourlyRate < MinHourlyRate || hourlyRate > MaxHourlyRate)
-                return (null, $"Ставка должна быть от {MinHourlyRate} до {MaxHourlyRate}");
-
-            var salary = Math.Round(totalHours * hourlyRate, 2);
+            var totalPenalty = Math.Round(attendancePenalty + ticketPenalty, 2);
+            var finalBillable = Math.Round(Math.Max(0, actual - totalPenalty), 2);
+            var salary = Math.Round(finalBillable * rate, 2);
 
             return (new PayrollRecord
             {
                 Id = Guid.NewGuid(),
+                OrganizationId = organizationId,
                 UserId = userId,
                 PeriodStart = periodStart.Date,
                 PeriodEnd = periodEnd.Date,
-                TotalHours = Math.Round(totalHours, 2),
-                HourlyRate = Math.Round(hourlyRate, 2),
+                ScheduledHours = Math.Round(scheduled, 2),
+                ActualHours = Math.Round(actual, 2),
+                AttendancePenaltyHours = Math.Round(attendancePenalty, 2),
+                TicketPenaltyHours = Math.Round(ticketPenalty, 2),
+                TotalPenaltyHours = totalPenalty,
+                FinalBillableHours = finalBillable,
+                HourlyRate = Math.Round(rate, 2),
                 CalculatedSalary = salary,
-                Status = "Calculated",
+                Status = PayrollStatus.Calculated,
                 CreatedAt = DateTime.UtcNow
             }, null);
         }
 
-        public void ChangeStatus(string newStatus)
+        public void ChangeStatus(PayrollStatus newStatus)
         {
-            if (!ValidStatuses.Contains(newStatus))
-                throw new InvalidOperationException($"Недопустимый статус: {newStatus}");
+            var validTransitions = new Dictionary<PayrollStatus, PayrollStatus[]>
+            {
+                [PayrollStatus.Calculated] = new[] { PayrollStatus.Approved },
+                [PayrollStatus.Approved] = new[] { PayrollStatus.Paid, PayrollStatus.Calculated },
+                [PayrollStatus.Paid] = Array.Empty<PayrollStatus>()
+            };
 
-            if (Status == "Paid" && newStatus != "Paid")
-                throw new InvalidOperationException("Оплаченный расчёт нельзя изменить");
+            if (!validTransitions[Status].Contains(newStatus))
+                throw new InvalidOperationException(
+                    $"Нельзя перевести PayrollRecord из '{Status}' в '{newStatus}'");
 
             Status = newStatus;
             MarkAsUpdated();
         }
 
-        public void Approve() => ChangeStatus("Approved");
-        public void MarkAsPaid() => ChangeStatus("Paid");
+        public void ChangeStatus(string newStatus)
+        {
+            if (!Enum.TryParse<PayrollStatus>(newStatus, ignoreCase: true, out var parsed))
+                throw new InvalidOperationException(
+                    $"Недопустимый статус: '{newStatus}'. " +
+                    $"Допустимые: {string.Join(", ", Enum.GetNames<PayrollStatus>())}");
 
-        public bool IsForPeriod(DateTime date) => date >= PeriodStart && date <= PeriodEnd;
-        public bool IsForUser(Guid userId) => UserId == userId;
+            ChangeStatus(parsed);
+        }
+
+        public void Approve() => ChangeStatus(PayrollStatus.Approved);
+        public void MarkAsPaid() => ChangeStatus(PayrollStatus.Paid);
     }
 }
